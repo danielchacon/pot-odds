@@ -14,3 +14,7 @@ export default {
   }
 }
 </script>
+
+<style lang="scss">
+@import "destyle.css/destyle";
+</style>

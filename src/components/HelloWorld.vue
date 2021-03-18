@@ -1,18 +1,41 @@
 <template>
-  <div>
-    <div>
-      Рука: <input type="text" v-model="hand" />
+  <div style="padding: 10px;">
+    <div style="padding: 5px 0;">
+      Рука:
+      <input
+        type="text"
+        v-model="hand"
+        style="width: 150px; border-bottom: 1px solid black;"
+      />
       <div v-if="!handValid">Ошибка</div>
     </div>
-    <div>
-      Стол: <input type="text" v-model="board" />
+    <div style="padding: 5px 0;">
+      Стол:
+      <input
+        type="text"
+        v-model="board"
+        style="width: 150px; border-bottom: 1px solid black;"
+      />
       <div v-if="!boardValid">Ошибка</div>
     </div>
-    <div>Кон: <input type="number" v-model="pot" /></div>
-    <div>Колл: <input type="number" v-model="call" /></div>
-    <div>Пот-оддсы: {{ potOdds }}%</div>
+    <div style="padding: 5px 0;">
+      Кон:
+      <input
+        type="number"
+        v-model="pot"
+        style="width: 150px; border-bottom: 1px solid black;"
+      />
+    </div>
+    <div style="padding: 5px 0;">
+      Колл:
+      <input
+        type="number"
+        v-model="call"
+        style="width: 150px; border-bottom: 1px solid black;"
+      />
+    </div>
     <div v-if="draws">
-      <div>Дро:</div>
+      <br />
       <ul>
         <li v-for="(draw, index) in draws" v-bind:key="`out-${index}`">
           <div>{{ draw.name }}</div>
@@ -21,21 +44,76 @@
               v-for="(group, index0) in draw.got"
               v-bind:key="`got-${index}-${index0}`"
             >
-              <div>В наличии:</div>
-              <ul>
+              <ul style="display: flex; flex-wrap: wrap;">
                 <li
-                  v-for="(card, index1) in group.list"
+                  v-for="(card, index1) in group.concatCardsSorted"
                   v-bind:key="`card-${index}-${index0}-${index1}`"
+                  style="padding: 5px;"
                 >
-                  {{ card.value + card.suit }}
+                  <div
+                    :style="
+                      group.list.filter(
+                        (item) =>
+                          item.suit === card.suit && item.value === card.value
+                      ).length
+                        ? 'font-weight: bold'
+                        : 'opacity: 0.6'
+                    "
+                  >
+                    {{ card.value.toUpperCase()
+                    }}<span
+                      :style="
+                        card.suit === 'h' || card.suit === 'd'
+                          ? 'color: red;'
+                          : ''
+                      "
+                      >{{ card.suit.toUpperCase() }}</span
+                    >
+                  </div>
                 </li>
               </ul>
-              <div>Ауты: {{ group.outs.length }}</div>
-              <div>Оддсы: {{ group.fillOdds }}%</div>
             </li>
           </ul>
         </li>
       </ul>
+      <br />
+      <div>Ауты: {{ allOuts.length }}</div>
+      <ul>
+        <li
+          v-for="(group, index) in unseenDeckGrouped"
+          v-bind:key="`group-${index}`"
+        >
+          <ul style="display: flex; flex-wrap: wrap;">
+            <li
+              v-for="(card, index0) in group"
+              v-bind:key="`card-${index}-${index0}`"
+              style="padding: 5px;"
+            >
+              <div
+                :style="
+                  allOuts.filter(
+                    (item) =>
+                      item.suit === card.suit && item.value === card.value
+                  ).length
+                    ? 'font-weight: bold'
+                    : 'opacity: 0.6'
+                "
+              >
+                {{ card.value.toUpperCase()
+                }}<span
+                  :style="
+                    card.suit === 'h' || card.suit === 'd' ? 'color: red;' : ''
+                  "
+                  >{{ card.suit.toUpperCase() }}</span
+                >
+              </div>
+            </li>
+          </ul>
+        </li>
+      </ul>
+      <br />
+      <div>Оддсы: {{ allOdds }}%</div>
+      <div>Пот-оддсы: {{ potOdds }}%</div>
       <div>Ставить? {{ shouldCall ? "Да" : "Нет" }}</div>
     </div>
   </div>
@@ -87,6 +165,27 @@ export default {
       for (var i = 0; i < suits.length; i++) {
         for (var x = 0; x < values.length; x++) {
           var card = { value: values[x], suit: suits[i] };
+
+          if (parseInt(values[x], 10) <= 10) {
+            card.valueWeight = parseInt(values[x], 10);
+          }
+
+          if (values[x] === "j") {
+            card.valueWeight = 11;
+          }
+
+          if (values[x] === "q") {
+            card.valueWeight = 12;
+          }
+
+          if (values[x] === "k") {
+            card.valueWeight = 13;
+          }
+
+          if (values[x] === "a") {
+            card.valueWeight = 14;
+          }
+
           deck.push(card);
         }
       }
@@ -105,6 +204,14 @@ export default {
 
       return null;
     },
+    unseenDeckGrouped: function() {
+      return Object.values(
+        this.unseenDeck.reduce(function(rv, x) {
+          (rv[x["value"]] = rv[x["value"]] || []).push(x);
+          return rv;
+        }, {})
+      ).sort((a, b) => a[0].valueWeight > b[0].valueWeight);
+    },
     draws: function() {
       if (this.unseenDeck) {
         const temp = [];
@@ -117,7 +224,7 @@ export default {
         };
 
         const flush = Object.values(groupBy(this.concatCards, "suit"))
-          .filter((item) => item.length > 1 && item.length <= 5)
+          .filter((item) => item.length >= 3 && item.length <= 5)
           .map((item) => {
             return {
               list: item,
@@ -138,23 +245,22 @@ export default {
           });
 
           flush.forEach((item) => {
-            item.fillOdds = Math.round(
-              (item.outs.length / this.unseenDeck.length +
-                item.outs.length / (this.unseenDeck.length - 1) -
-                ((item.outs.length / this.unseenDeck.length) *
-                  (item.outs.length - 1)) /
-                  (this.unseenDeck.length - 1)) *
-                100
+            item.concatCardsSorted = item.list.concat(
+              this.concatCards.filter(
+                (item0) => item.list.filter((item1) => item1.suit === item0.suit).length === 0
+              )
             );
           });
 
           temp.push({
-            name: "Флеш",
+            name: "Флеш-дро",
             got: flush,
           });
         }
 
-        const straightDeck = JSON.parse(JSON.stringify(this.deck.map(item => item.value).slice(0, 13)));
+        const straightDeck = JSON.parse(
+          JSON.stringify(this.deck.map((item) => item.value).slice(0, 13))
+        );
 
         straightDeck.unshift(this.deck[this.deck.length - 1].value);
 
@@ -167,17 +273,39 @@ export default {
 
       return null;
     },
+    allOuts: function() {
+      if (this.draws.length) {
+        let temp = [];
+
+        this.draws.forEach((item) => {
+          item.got.forEach((item0) => {
+            temp = temp.concat(item0.outs);
+          });
+        });
+
+        return temp.filter(
+          (v, i, a) =>
+            a.findIndex((t) => t.suit === v.suit && t.value === v.value) === i
+        );
+      }
+
+      return null;
+    },
+    allOdds: function() {
+      return Math.round(
+        (this.allOuts.length / this.unseenDeck.length +
+          this.allOuts.length / (this.unseenDeck.length - 1) -
+          ((this.allOuts.length / this.unseenDeck.length) *
+            (this.allOuts.length - 1)) /
+            (this.unseenDeck.length - 1)) *
+          100
+      );
+    },
     potOdds: function() {
       return Math.round((this.call / this.pot) * 100);
     },
     shouldCall: function() {
-      if (
-        this.draws &&
-        this.draws.filter(
-          (item) =>
-            item.got.filter((item0) => item0.fillOdds > this.potOdds).length
-        ).length
-      ) {
+      if (this.draws && this.allOdds > this.potOdds) {
         return true;
       }
 
