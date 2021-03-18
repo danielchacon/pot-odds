@@ -77,8 +77,8 @@
         </li>
       </ul>
       <br />
-      <div>Ауты: {{ allOuts.length }}</div>
-      <ul>
+      <div v-if="allOuts">Ауты: {{ allOuts.length }}</div>
+      <ul v-if="allOuts">
         <li
           v-for="(group, index) in unseenDeckGrouped"
           v-bind:key="`group-${index}`"
@@ -112,9 +112,11 @@
         </li>
       </ul>
       <br />
-      <div>Оддсы: {{ allOdds }}%</div>
-      <div>Пот-оддсы: {{ potOdds }}%</div>
-      <div>Ставить? {{ shouldCall ? "Да" : "Нет" }}</div>
+      <div v-if="allOdds">Оддсы: {{ allOdds }}%</div>
+      <div v-if="potOdds">Пот-оддсы: {{ potOdds }}%</div>
+      <div v-if="typeof shouldCall === 'boolean'">
+        Ставить? {{ shouldCall ? "Да" : "Нет" }}
+      </div>
     </div>
   </div>
 </template>
@@ -140,8 +142,8 @@ const values = [
 export default {
   data() {
     return {
-      hand: "jh 2s",
-      board: "3h js 10s",
+      hand: "jd2s",
+      board: "4hqd6h",
       pot: 450,
       call: 70,
     };
@@ -247,7 +249,9 @@ export default {
           flush.forEach((item) => {
             item.concatCardsSorted = item.list.concat(
               this.concatCards.filter(
-                (item0) => item.list.filter((item1) => item1.suit === item0.suit).length === 0
+                (item0) =>
+                  item.list.filter((item1) => item1.suit === item0.suit)
+                    .length === 0
               )
             );
           });
@@ -264,9 +268,70 @@ export default {
 
         straightDeck.unshift(this.deck[this.deck.length - 1].value);
 
-        // const straight = []
+        const straightMasks = [];
 
-        console.log(straightDeck);
+        straightDeck.forEach((item, index, array) => {
+          if (index < straightDeck.length - 4) {
+            straightMasks.push(array.slice(index, index + 5));
+          }
+        });
+
+        const straights = [];
+        const concatMappedByValue = this.concatCards.map(
+          (item0) => item0.value
+        );
+
+        straightMasks.forEach((item) => {
+          let count = 0;
+
+          item.forEach((item0) => {
+            if (concatMappedByValue.filter((item1) => item1 === item0).length) {
+              count += 1;
+            }
+          });
+
+          if (count >= 3) {
+            straights.push({
+              list: item
+                .filter((item0) =>
+                  concatMappedByValue.some((item1) => item1 === item0)
+                )
+                .map((item) =>
+                  this.concatCards.find((item1) => item1.value === item)
+                ),
+              mask: item,
+            });
+          }
+        });
+
+        if (straights.length) {
+          straights.forEach((item) => {
+            const outValues = item.mask.filter(
+              (item1) =>
+                item.list
+                  .map((item2) => item2.value)
+                  .some((item2) => item2 === item1) === false
+            );
+
+            item.outs = this.unseenDeck.filter(
+              (item0) =>
+                outValues.filter((item1) => item1 === item0.value).length
+            );
+          });
+
+          straights.forEach((item) => {
+            const temp1 = JSON.parse(JSON.stringify(this.concatCards));
+
+            temp1.sort((a, b) => a.valueWeight > b.valueWeight);
+
+            item.concatCardsSorted = temp1;
+          });
+
+          temp.push({
+            name: "Стрит-дро",
+            got: straights,
+          });
+        }
 
         return temp;
       }
@@ -292,46 +357,82 @@ export default {
       return null;
     },
     allOdds: function() {
-      return Math.round(
-        (this.allOuts.length / this.unseenDeck.length +
-          this.allOuts.length / (this.unseenDeck.length - 1) -
-          ((this.allOuts.length / this.unseenDeck.length) *
-            (this.allOuts.length - 1)) /
-            (this.unseenDeck.length - 1)) *
-          100
-      );
+      if (this.allOuts) {
+        return Math.round(
+          (this.allOuts.length / this.unseenDeck.length +
+            this.allOuts.length / (this.unseenDeck.length - 1) -
+            ((this.allOuts.length / this.unseenDeck.length) *
+              (this.allOuts.length - 1)) /
+              (this.unseenDeck.length - 1)) *
+            100
+        );
+      }
+      return null;
     },
     potOdds: function() {
-      return Math.round((this.call / this.pot) * 100);
-    },
-    shouldCall: function() {
-      if (this.draws && this.allOdds > this.potOdds) {
-        return true;
+      if (this.call > 0 && this.pot > 0) {
+        return Math.round((this.call / this.pot) * 100);
       }
 
-      return false;
+      return null;
+    },
+    shouldCall: function() {
+      if (this.draws && this.allOdds && this.potOdds) {
+        if (this.allOdds > this.potOdds) {
+          return true;
+        }
+
+        return false;
+      }
+
+      return null;
     },
   },
   methods: {
     inputSplitted(inputVal) {
-      return inputVal.split(" ").map((item) => ({
-        suit: item.slice(item.length - 1, item.length),
-        value: item.slice(0, item.length - 1),
+      const bp = [0];
+
+      inputVal.split("").forEach((item, index, array) => {
+        if (suits.filter((item0) => item0 === item).length) {
+          if (index + 1 !== array.length) {
+            bp.push(index + 1);
+          }
+        }
+      });
+
+      const intervals = bp.map((item, index) => ({
+        startIndex: item,
+        length:
+          item - bp[index + 1] ? bp[index + 1] - item : inputVal.length - item,
       }));
+
+      const splitted = [];
+
+      intervals.forEach((item) => {
+        splitted.push(inputVal.substr(item.startIndex, item.length));
+      });
+
+      const temp = splitted.map((item) =>
+        this.deck.find(
+          (item0) =>
+            item0.suit === item.slice(item.length - 1, item.length) &&
+            item0.value === item.slice(0, item.length - 1)
+        )
+      );
+
+      return temp;
     },
     inputIsValid(inputVal, type) {
       if (inputVal.length) {
         let validCount = 0;
-        const thisSplit = inputVal.split(" ");
+        const thisSplit = this.inputSplitted(inputVal);
 
         thisSplit.forEach((item) => {
           if (
-            item.length > 1 &&
-            suits.filter(
-              (item0) => item0 === item.slice(item.length - 1, item.length)
-            ).length &&
-            values.filter((item0) => item0 === item.slice(0, item.length - 1))
-              .length
+            item.suit.length &&
+            item.value.length &&
+            suits.filter((item0) => item0.suit === item.suit).length === 0 &&
+            values.filter((item0) => item0.value === item.value).length === 0
           ) {
             validCount += 1;
           }
