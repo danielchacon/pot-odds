@@ -1,23 +1,80 @@
 <template>
   <div style="padding: 10px;">
-    <div style="padding: 5px 0;">
-      Рука:
-      <input
-        type="text"
-        v-model="hand"
-        style="width: 150px; border-bottom: 1px solid black;"
-      />
-      <div v-if="!handValid">Ошибка</div>
-    </div>
-    <div style="padding: 5px 0;">
-      Стол:
-      <input
-        type="text"
-        v-model="board"
-        style="width: 150px; border-bottom: 1px solid black;"
-      />
-      <div v-if="!boardValid">Ошибка</div>
-    </div>
+    <section>
+      <div class="section-heading">
+        Выберите 5-6 карт (2 ручные карты и 3-4 на столе)
+      </div>
+      <div class="deck-wrapper">
+        <ul class="ui-deck">
+          <li
+            v-for="(group, index) in deckGrouped"
+            v-bind:key="`group-${index}`"
+          >
+            <ul class="ui-deck__group">
+              <li
+                v-for="(card, index0) in group"
+                v-bind:key="`card-${index}-${index0}`"
+              >
+                <div
+                  class="card"
+                  :class="[
+                    card.selected ? 'selected' : '',
+                    card.out ? 'out' : '',
+                    card.selected || concatCards.length < 6 ? 'selectable' : '',
+                  ]"
+                  @click="cardClick(card)"
+                >
+                  <div>
+                    <span>{{ card.value.toUpperCase() }}</span
+                    ><span
+                      :class="
+                        card.suit === 'h' || card.suit === 'd' ? 'red-suit' : ''
+                      "
+                      >{{ suitToChar(card.suit) }}</span
+                    >
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+      <div class="message-container" v-if="notEnoughCards">
+        <ul>
+          <li v-if="notEnoughCards">
+            <div class="message">
+              <div class="message__icon">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  height="24px"
+                  viewBox="0 0 24 24"
+                  width="24px"
+                >
+                  <path
+                    d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
+                  />
+                </svg>
+              </div>
+              <div class="message__text">
+                Выбрано недостаточно карт
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="outs-container">
+        <table class="outs-table">
+          <tr v-if="allOuts" class="outs-tr">
+            <td><b>Ауты</b>:</td>
+            <td>{{ allOuts.length }} карт</td>
+          </tr>
+          <tr v-if="allOdds">
+            <td><b>Шансы</b>:</td>
+            <td>{{ allOdds.ratio }} или {{ allOdds.perc }}%</td>
+          </tr>
+        </table>
+      </div>
+    </section>
     <div style="padding: 5px 0;">
       Кон:
       <input
@@ -57,13 +114,19 @@
                   <div
                     :style="(card.out ? 'opacity: 0.6;' : '') + 'width: 35px;'"
                   >
-                    <span :style="draw.type === 'straight' ? 'font-weight: bold;' : ''">{{ card.value.toUpperCase() }}</span>
+                    <span
+                      :style="
+                        draw.type === 'straight' ? 'font-weight: bold;' : ''
+                      "
+                      >{{ card.value.toUpperCase() }}</span
+                    >
                     <span
                       v-if="card.suit !== ''"
                       :style="
                         (card.suit === 'h' || card.suit === 'd'
                           ? 'color: red;'
-                          : '') + (draw.type === 'flush' ? 'font-weight: bold;' : '')
+                          : '') +
+                          (draw.type === 'flush' ? 'font-weight: bold;' : '')
                       "
                       >{{ card.suit.toUpperCase() }}</span
                     >
@@ -75,43 +138,10 @@
         </li>
       </ul>
       <br />
-      <div v-if="allOuts">Ауты: {{ allOuts.length }}</div>
-      <ul v-if="allOuts">
-        <li
-          v-for="(group, index) in unseenDeckGrouped"
-          v-bind:key="`group-${index}`"
-        >
-          <ul style="display: flex; flex-wrap: wrap;">
-            <li
-              v-for="(card, index0) in group"
-              v-bind:key="`card-${index}-${index0}`"
-              style="padding: 5px 0;"
-            >
-              <div
-                :style="
-                  (allOuts.filter(
-                    (item) =>
-                      item.suit === card.suit && item.value === card.value
-                  ).length
-                    ? 'font-weight: bold;'
-                    : 'opacity: 0.6;') + 'width: 35px;'
-                "
-              >
-                {{ card.value.toUpperCase()
-                }}<span
-                  :style="
-                    card.suit === 'h' || card.suit === 'd' ? 'color: red;' : ''
-                  "
-                  >{{ card.suit.toUpperCase() }}</span
-                >
-              </div>
-            </li>
-          </ul>
-        </li>
-      </ul>
-      <br />
-      <div v-if="allOdds">Оддсы: {{ allOdds }}%</div>
-      <div v-if="potOdds">Пот-оддсы: {{ potOdds }}%</div>
+      <div v-if="allOdds">Оддсы: {{ allOdds.ratio }}, {{ allOdds.perc }}%</div>
+      <div v-if="potOdds">
+        Пот-оддсы: {{ potOdds.ratio }}, {{ potOdds.perc }}%
+      </div>
       <div v-if="typeof shouldCall === 'boolean'">
         Ставить? {{ shouldCall ? "Да" : "Нет" }}
       </div>
@@ -137,28 +167,38 @@ const values = [
   "a",
 ];
 
+function gcd(a, b) {
+  let temp;
+  let m;
+
+  if (b > a) {
+    temp = a;
+    a = b;
+    b = temp;
+  }
+  while (b != 0) {
+    m = a % b;
+    a = b;
+    b = m;
+  }
+  return a;
+}
+
+function ratio(x, y) {
+  const c = gcd(x, y);
+
+  return `${x / c}:${y / c}`;
+}
+
 export default {
   data() {
     return {
-      hand: "2d3d",
-      board: "4h5dqh",
-      pot: 450,
-      call: 70,
+      pot: 0,
+      call: 0,
+      concatCards: [],
     };
   },
   computed: {
-    handValid: function() {
-      return this.inputIsValid(this.hand.trim().toLowerCase(), "hand");
-    },
-    boardValid: function() {
-      return this.inputIsValid(this.board.trim().toLowerCase(), "board");
-    },
-    concatCards: function() {
-      const hand = this.inputSplitted(this.hand.trim().toLowerCase());
-      const board = this.inputSplitted(this.board.trim().toLowerCase());
-
-      return hand.concat(board);
-    },
     deck: function() {
       var deck = new Array();
 
@@ -192,17 +232,54 @@ export default {
 
       return deck;
     },
-    unseenDeck: function() {
-      if (this.handValid && this.boardValid) {
-        return this.deck.filter(
-          (item) =>
-            this.concatCards.filter(
-              (item0) => item0.suit === item.suit && item0.value === item.value
-            ).length === 0
-        );
-      }
+    deckGrouped: function() {
+      const temp0 = JSON.parse(JSON.stringify(this.deck));
+      const highlighted = temp0.map((item) => {
+        const temp = item;
 
-      return null;
+        if (
+          this.concatCards.length &&
+          this.concatCards.filter(
+            (item0) => item0.value === item.value && item0.suit === item.suit
+          ).length
+        ) {
+          temp.selected = true;
+        } else {
+          temp.selected = false;
+        }
+
+        if (
+          this.allOuts &&
+          this.allOuts.length &&
+          this.allOuts.filter(
+            (item0) => item0.value === item.value && item0.suit === item.suit
+          ).length
+        ) {
+          temp.out = true;
+        } else {
+          temp.out = false;
+        }
+
+        return temp;
+      });
+
+      return Object.values(
+        highlighted.reduce(function(rv, x) {
+          (rv[x["value"]] = rv[x["value"]] || []).push(x);
+          return rv;
+        }, {})
+      ).sort((a, b) => a[0].valueWeight > b[0].valueWeight);
+    },
+    notEnoughCards: function() {
+      return this.concatCards.length < 5;
+    },
+    unseenDeck: function() {
+      return this.deck.filter(
+        (item) =>
+          this.concatCards.filter(
+            (item0) => item0.suit === item.suit && item0.value === item.value
+          ).length === 0
+      );
     },
     unseenDeckGrouped: function() {
       return Object.values(
@@ -213,7 +290,11 @@ export default {
       ).sort((a, b) => a[0].valueWeight > b[0].valueWeight);
     },
     draws: function() {
-      if (this.unseenDeck) {
+      if (
+        this.unseenDeck &&
+        this.concatCards.length >= 5 &&
+        this.concatCards.length < 7
+      ) {
         const temp = [];
 
         var groupBy = function(xs, key) {
@@ -264,11 +345,13 @@ export default {
             );
           });
 
-          temp.push({
-            name: "Флеш-дро",
-            type: "flush",
-            got: flush,
-          });
+          if (flush.filter((item) => item.list.length === 5).length === 0) {
+            temp.push({
+              name: "Флеш-дро",
+              type: "flush",
+              got: flush,
+            });
+          }
         }
 
         const straightDeck = JSON.parse(
@@ -332,7 +415,7 @@ export default {
               (item1) =>
                 item.list
                   .map((item2) => item2.value)
-                  .some((item2) => item2 === item1) === false
+                  .some((item2) => item2 === item1.value) === false
             );
 
             item.outs = this.unseenDeck.filter(
@@ -393,7 +476,7 @@ export default {
       return null;
     },
     allOuts: function() {
-      if (this.draws.length) {
+      if (this.draws && this.draws.length) {
         let temp = [];
 
         this.draws.forEach((item) => {
@@ -412,27 +495,28 @@ export default {
     },
     allOdds: function() {
       if (this.allOuts) {
-        return Math.round(
-          (this.allOuts.length / this.unseenDeck.length +
-            this.allOuts.length / (this.unseenDeck.length - 1) -
-            ((this.allOuts.length / this.unseenDeck.length) *
-              (this.allOuts.length - 1)) /
-              (this.unseenDeck.length - 1)) *
-            100
-        );
+        return {
+          ratio: ratio(this.allOuts.length, this.unseenDeck.length),
+          perc: Math.round(
+            (this.allOuts.length / this.unseenDeck.length) * 100
+          ),
+        };
       }
       return null;
     },
     potOdds: function() {
       if (this.call > 0 && this.pot > 0) {
-        return Math.round((this.call / this.pot) * 100);
+        return {
+          ratio: ratio(this.call, this.pot),
+          perc: Math.round((this.call / this.pot) * 100),
+        };
       }
 
       return null;
     },
     shouldCall: function() {
       if (this.draws && this.allOdds && this.potOdds) {
-        if (this.allOdds > this.potOdds) {
+        if (this.allOdds.perc > this.potOdds.perc) {
           return true;
         }
 
@@ -443,85 +527,162 @@ export default {
     },
   },
   methods: {
-    inputSplitted(inputVal) {
-      const bp = [0];
-
-      inputVal.split("").forEach((item, index, array) => {
-        if (suits.filter((item0) => item0 === item).length) {
-          if (index + 1 !== array.length) {
-            bp.push(index + 1);
-          }
-        }
-      });
-
-      const intervals = bp.map((item, index) => ({
-        startIndex: item,
-        length:
-          item - bp[index + 1] ? bp[index + 1] - item : inputVal.length - item,
-      }));
-
-      const splitted = [];
-
-      intervals.forEach((item) => {
-        splitted.push(inputVal.substr(item.startIndex, item.length));
-      });
-
-      const temp = splitted.map((item) =>
-        this.deck.find(
-          (item0) =>
-            item0.suit === item.slice(item.length - 1, item.length) &&
-            item0.value === item.slice(0, item.length - 1)
-        )
-      );
-
-      return temp;
+    suitToChar(suit) {
+      return suit === "c"
+        ? "♣"
+        : suit === "d"
+        ? "♦"
+        : suit === "h"
+        ? "♥"
+        : suit === "s"
+        ? "♠"
+        : "";
     },
-    inputIsValid(inputVal, type) {
-      if (inputVal.length) {
-        let validCount = 0;
-        const thisSplit = this.inputSplitted(inputVal);
-
-        thisSplit.forEach((item) => {
-          if (
-            item.suit.length &&
-            item.value.length &&
-            suits.filter((item0) => item0.suit === item.suit).length === 0 &&
-            values.filter((item0) => item0.value === item.value).length === 0
-          ) {
-            validCount += 1;
-          }
-        });
-
-        if (
-          validCount === thisSplit.length &&
-          this.concatCards.every(
-            (e, i, a) =>
-              a.findIndex(
-                (item) => item.suit === e.suit && item.value === e.value
-              ) === i
-          )
-        ) {
-          if (type === "hand" && thisSplit.length === 2) {
-            return true;
-          }
-
-          if (
-            type === "board" &&
-            thisSplit.length >= 3 &&
-            thisSplit.length <= 5
-          ) {
-            return true;
-          }
-          return false;
+    cardClick(card) {
+      if (
+        this.concatCards.filter(
+          (item) => item.value === card.value && item.suit === card.suit
+        ).length
+      ) {
+        this.concatCards = this.concatCards.filter(
+          (item) => !(item.value === card.value && item.suit === card.suit)
+        );
+      } else {
+        if (this.concatCards.length < 6) {
+          this.concatCards.push(
+            this.deck.find(
+              (item) => item.suit === card.suit && item.value === card.value
+            )
+          );
         }
-
-        return false;
       }
-
-      return true;
     },
   },
 };
 
 // TODO: общая таблица всех карт, выбор карт кликом, выбранные карты меняют обводку или фон, в этой же таблице ауты показываем, убираем текстовые инпуты
 </script>
+
+<style lang="scss">
+.deck-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.ui-deck {
+  display: flex;
+  margin: 0 -5px;
+}
+
+.ui-deck > li {
+  padding: 0 5px;
+}
+
+.ui-deck__group {
+  display: flex;
+  flex-direction: column;
+  margin: -5px 0;
+}
+
+.ui-deck__group > li {
+  padding: 5px 0;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: (50px * 1.390625);
+  border: 1px solid darken(#f2f2f2, 10%);
+  border-radius: 5px;
+  background-color: white;
+  color: #333;
+  font-family: "Old Standard TT", serif;
+  font-size: 24px;
+  user-select: none;
+  transition: 0.1s linear;
+  pointer-events: none;
+}
+
+.card.selectable {
+  pointer-events: all;
+  cursor: pointer;
+}
+
+.card.selectable:hover {
+  border-color: darken(#f2f2f2, 30%);
+}
+
+.card.selected {
+  border-top-width: 3px;
+  border-bottom-width: 3px;
+  border-color: #00ac1b;
+}
+
+.card.selected:hover {
+  border-color: darken(#00ac1b, 10%);
+}
+
+.card.out {
+  border-top-width: 3px;
+  border-bottom-width: 3px;
+  border-color: #11a7ff;
+}
+
+.card.out:hover {
+  border-color: darken(#11a7ff, 30%);
+}
+
+.red-suit {
+  color: #ff4b4b;
+}
+
+.section-heading {
+  margin-bottom: 1em;
+  font-size: 20px;
+  text-align: center;
+  font-weight: bold;
+  color: #333;
+}
+
+.message-container {
+  margin: 20px 0;
+}
+
+.message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1em;
+  background-color: #ffe557;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+.message__icon {
+  flex: 0 0 35px;
+  max-width: 35px;
+}
+
+.message__icon svg {
+  display: block;
+  width: 25px;
+  height: 25px;
+}
+
+.outs-container {
+  max-width: 200px;
+  margin: 20px auto;
+}
+
+.outs-table td {
+  padding: 5px;
+  color: #333;
+}
+
+.outs-tr td {
+  color: #11a7ff;
+}
+</style>

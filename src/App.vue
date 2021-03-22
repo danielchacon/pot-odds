@@ -17,4 +17,9 @@ export default {
 
 <style lang="scss">
 @import "destyle.css/destyle";
+
+body {
+  background-color: #f2f2f2;
+  font-family: 'Montserrat', sans-serif;
+}
 </style>
