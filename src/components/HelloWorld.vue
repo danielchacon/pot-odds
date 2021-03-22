@@ -62,16 +62,14 @@
           </li>
         </ul>
       </div>
-      <div class="outs-container">
-        <table class="outs-table">
-          <tr v-if="allOuts" class="outs-tr">
-            <td><b>Ауты</b>:</td>
-            <td>{{ allOuts.length }} карт</td>
-          </tr>
-          <tr v-if="allOdds">
-            <td><b>Шансы</b>:</td>
-            <td>{{ allOdds.ratio }} или {{ allOdds.perc }}%</td>
-          </tr>
+      <div class="outs-container" v-if="draws || allOuts || allOdds">
+        <div v-if="draws">
+          <div class="draw-heading">Дро-комбинации</div>
+        </div>
+        <table class="outs-table" v-if="allOuts || allOdds">
+          <div>Суммарно</div>
+          <div>Ауты: {{ allOuts.length }} карт</div>
+          <div>Шансы: {{ allOdds.ratio }} или {{ allOdds.perc }}%</div>
         </table>
       </div>
     </section>
@@ -673,13 +671,18 @@ export default {
 }
 
 .outs-container {
-  max-width: 200px;
+  max-width: 300px;
   margin: 20px auto;
 }
 
 .outs-table td {
-  padding: 5px;
   color: #333;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.outs-table td:first-child {
+  padding-right: 5px;
 }
 
 .outs-tr td {
