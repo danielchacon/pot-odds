@@ -37,35 +37,33 @@
     <div v-if="draws">
       <br />
       <ul>
-        <li v-for="(draw, index) in draws" v-bind:key="`out-${index}`">
+        <li
+          v-for="(draw, index) in draws"
+          v-bind:key="`out-${index}`"
+          style="padding: 5px 0;"
+        >
           <div>{{ draw.name }}</div>
           <ul>
             <li
               v-for="(group, index0) in draw.got"
               v-bind:key="`got-${index}-${index0}`"
+              style="padding: 5px 0;"
             >
               <ul style="display: flex; flex-wrap: wrap;">
                 <li
-                  v-for="(card, index1) in group.concatCardsSorted"
+                  v-for="(card, index1) in group.viewMask"
                   v-bind:key="`card-${index}-${index0}-${index1}`"
-                  style="padding: 5px;"
                 >
                   <div
-                    :style="
-                      group.list.filter(
-                        (item) =>
-                          item.suit === card.suit && item.value === card.value
-                      ).length
-                        ? 'font-weight: bold'
-                        : 'opacity: 0.6'
-                    "
+                    :style="(card.out ? 'opacity: 0.6;' : '') + 'width: 35px;'"
                   >
-                    {{ card.value.toUpperCase()
-                    }}<span
+                    <span :style="draw.type === 'straight' ? 'font-weight: bold;' : ''">{{ card.value.toUpperCase() }}</span>
+                    <span
+                      v-if="card.suit !== ''"
                       :style="
-                        card.suit === 'h' || card.suit === 'd'
+                        (card.suit === 'h' || card.suit === 'd'
                           ? 'color: red;'
-                          : ''
+                          : '') + (draw.type === 'flush' ? 'font-weight: bold;' : '')
                       "
                       >{{ card.suit.toUpperCase() }}</span
                     >
@@ -87,16 +85,16 @@
             <li
               v-for="(card, index0) in group"
               v-bind:key="`card-${index}-${index0}`"
-              style="padding: 5px;"
+              style="padding: 5px 0;"
             >
               <div
                 :style="
-                  allOuts.filter(
+                  (allOuts.filter(
                     (item) =>
                       item.suit === card.suit && item.value === card.value
                   ).length
-                    ? 'font-weight: bold'
-                    : 'opacity: 0.6'
+                    ? 'font-weight: bold;'
+                    : 'opacity: 0.6;') + 'width: 35px;'
                 "
               >
                 {{ card.value.toUpperCase()
@@ -142,8 +140,8 @@ const values = [
 export default {
   data() {
     return {
-      hand: "jd2s",
-      board: "4hqd6h",
+      hand: "2d3d",
+      board: "4h5dqh",
       pot: 450,
       call: 70,
     };
@@ -256,17 +254,38 @@ export default {
             );
           });
 
+          flush.forEach((item) => {
+            item.viewMask = item.list.concat(
+              Array.from({ length: 5 - item.list.length }, () => ({
+                suit: item.list[0].suit,
+                value: "",
+                out: true,
+              }))
+            );
+          });
+
           temp.push({
             name: "Флеш-дро",
+            type: "flush",
             got: flush,
           });
         }
 
         const straightDeck = JSON.parse(
-          JSON.stringify(this.deck.map((item) => item.value).slice(0, 13))
+          JSON.stringify(
+            this.deck
+              .map((item) => ({
+                value: item.value,
+                valueWeight: item.valueWeight,
+              }))
+              .slice(0, 13)
+          )
         );
 
-        straightDeck.unshift(this.deck[this.deck.length - 1].value);
+        straightDeck.unshift({
+          value: this.deck[this.deck.length - 1].value,
+          valueWeight: 0,
+        });
 
         const straightMasks = [];
 
@@ -285,7 +304,10 @@ export default {
           let count = 0;
 
           item.forEach((item0) => {
-            if (concatMappedByValue.filter((item1) => item1 === item0).length) {
+            if (
+              concatMappedByValue.filter((item1) => item1 === item0.value)
+                .length
+            ) {
               count += 1;
             }
           });
@@ -294,10 +316,10 @@ export default {
             straights.push({
               list: item
                 .filter((item0) =>
-                  concatMappedByValue.some((item1) => item1 === item0)
+                  concatMappedByValue.some((item1) => item1 === item0.value)
                 )
                 .map((item) =>
-                  this.concatCards.find((item1) => item1.value === item)
+                  this.concatCards.find((item1) => item1.value === item.value)
                 ),
               mask: item,
             });
@@ -315,7 +337,7 @@ export default {
 
             item.outs = this.unseenDeck.filter(
               (item0) =>
-                outValues.filter((item1) => item1 === item0.value).length
+                outValues.filter((item1) => item1.value === item0.value).length
             );
           });
 
@@ -327,10 +349,42 @@ export default {
             item.concatCardsSorted = temp1;
           });
 
-          temp.push({
-            name: "Стрит-дро",
-            got: straights,
+          straights.forEach((item) => {
+            const temp1 = item.list.concat(
+              item.mask
+                .filter(
+                  (item0) =>
+                    item.list.some((item1) => item1.value === item0.value) ===
+                    false
+                )
+                .map((item0) => ({
+                  suit: "",
+                  value: item0.value,
+                  valueWeight: item0.valueWeight,
+                  out: true,
+                }))
+            );
+
+            temp1.sort((a, b) => a.valueWeight > b.valueWeight);
+
+            item.viewMask = temp1;
           });
+
+          if (
+            straights.filter((item) => item.list.length === item.mask.length)
+              .length === 0
+          ) {
+            const got = straights.filter(
+              (item) =>
+                item.list.length >=
+                Math.max(...straights.map((el) => el.list.length))
+            );
+            temp.push({
+              name: "Стрит-дро",
+              type: "straight",
+              got,
+            });
+          }
         }
 
         return temp;
@@ -464,8 +518,10 @@ export default {
         return false;
       }
 
-      return false;
+      return true;
     },
   },
 };
+
+// TODO: общая таблица всех карт, выбор карт кликом, выбранные карты меняют обводку или фон, в этой же таблице ауты показываем, убираем текстовые инпуты
 </script>
