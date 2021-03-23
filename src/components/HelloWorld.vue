@@ -1,77 +1,128 @@
 <template>
-  <div style="padding: 10px;">
-    <section>
-      <div class="section-heading">
-        Выберите 5-6 карт (2 ручные карты и 3-4 на столе)
-      </div>
-      <div class="deck-wrapper">
-        <ul class="ui-deck">
-          <li
-            v-for="(group, index) in deckGrouped"
-            v-bind:key="`group-${index}`"
-          >
-            <ul class="ui-deck__group">
-              <li
-                v-for="(card, index0) in group"
-                v-bind:key="`card-${index}-${index0}`"
-              >
-                <div
-                  class="card"
-                  :class="[
-                    card.selected ? 'selected' : '',
-                    card.out ? 'out' : '',
-                    card.selected || concatCards.length < 6 ? 'selectable' : '',
-                  ]"
-                  @click="cardClick(card)"
-                >
-                  <div>
-                    <span>{{ card.value.toUpperCase() }}</span
-                    ><span
-                      :class="
-                        card.suit === 'h' || card.suit === 'd' ? 'red-suit' : ''
-                      "
-                      >{{ suitToChar(card.suit) }}</span
-                    >
-                  </div>
-                </div>
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </div>
-      <div class="message-container" v-if="notEnoughCards">
-        <ul>
-          <li v-if="notEnoughCards">
-            <div class="message">
-              <div class="message__icon">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  height="24px"
-                  viewBox="0 0 24 24"
-                  width="24px"
-                >
-                  <path
-                    d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
-                  />
-                </svg>
-              </div>
-              <div class="message__text">
-                Выбрано недостаточно карт
-              </div>
-            </div>
-          </li>
-        </ul>
-      </div>
-      <div class="outs-container" v-if="draws || allOuts || allOdds">
-        <div v-if="draws">
-          <div class="draw-heading">Дро-комбинации</div>
+  <div>
+    <section class="out-section">
+      <div class="container">
+        <div class="section-heading">
+          Вероятность усиления руки
         </div>
-        <table class="outs-table" v-if="allOuts || allOdds">
-          <div>Суммарно</div>
-          <div>Ауты: {{ allOuts.length }} карт</div>
-          <div>Шансы: {{ allOdds.ratio }} или {{ allOdds.perc }}%</div>
-        </table>
+        <div class="instruction-heading">
+          Выберите 5-6 карт (2 ручные карты и 3-4 на столе)
+        </div>
+        <div class="deck-wrapper">
+          <ul class="ui-deck">
+            <li
+              v-for="(group, index) in deckGrouped"
+              v-bind:key="`group-${index}`"
+            >
+              <ul class="ui-deck__group">
+                <li
+                  v-for="(card, index0) in group"
+                  v-bind:key="`card-${index}-${index0}`"
+                >
+                  <div
+                    class="card"
+                    :class="[
+                      card.selected ? 'selected' : '',
+                      card.out ? 'out' : '',
+                      card.selected || concatCards.length < 6
+                        ? 'selectable'
+                        : '',
+                    ]"
+                    @click="cardClick(card)"
+                  >
+                    <div>
+                      <span>{{ card.value.toUpperCase() }}</span
+                      ><span
+                        :class="[
+                          card.suit === 'h' || card.suit === 'd'
+                            ? 'red-suit'
+                            : '',
+                          'suit',
+                        ]"
+                        >{{ suitToChar(card.suit) }}</span
+                      >
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <div class="message-container" v-if="notEnoughCards">
+          <ul>
+            <li v-if="notEnoughCards">
+              <div class="message">
+                <div class="message__icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="24px"
+                    viewBox="0 0 24 24"
+                    width="24px"
+                  >
+                    <path
+                      d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
+                    />
+                  </svg>
+                </div>
+                <div class="message__text">
+                  Выбрано недостаточно карт
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div class="outs-summary" v-if="notEnoughCards === false">
+          <div v-if="draws && draws.length">
+            <div class="outs-heading">Дро-комбинации</div>
+            <table class="draw-table">
+              <tr v-for="(draw, index) in draws" v-bind:key="`draw-${index}`">
+                <td>{{ draw.type === "flush" ? "Флеш" : "Стрит" }}</td>
+                <td>
+                  <ul class="draw-list">
+                    <li
+                      v-for="(card, index1) in draw.viewMask"
+                      v-bind:key="`card-${index}-${index1}`"
+                    >
+                      <div :class="['mini-card', { out: card.out }]">
+                        <div>
+                          <span
+                            :class="[{ straight: draw.type === 'straight' }]"
+                            >{{ card.value.toUpperCase() }}</span
+                          >
+                          <span
+                            v-if="card.suit !== ''"
+                            :class="[
+                              card.suit === 'h' || card.suit === 'd'
+                                ? 'red-suit'
+                                : '',
+                              { flush: draw.type === 'flush' },
+                              'suit',
+                            ]"
+                            >{{ suitToChar(card.suit) }}</span
+                          >
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div class="outs-heading">Итого</div>
+          <div>
+            Ауты:
+            <span class="big-number text-out">{{ allOuts.length }}</span>
+          </div>
+          <div>
+            Шансы:
+            <span class="big-number text-out">{{ allOdds.ratio }}</span> или
+            <span class="big-number text-out">{{ allOdds.perc }}%</span>
+          </div>
+        </div>
       </div>
+    </section>
+    <section class="pot-section">
+      <div class="container"></div>
     </section>
     <div style="padding: 5px 0;">
       Кон:
@@ -89,53 +140,7 @@
         style="width: 150px; border-bottom: 1px solid black;"
       />
     </div>
-    <div v-if="draws">
-      <br />
-      <ul>
-        <li
-          v-for="(draw, index) in draws"
-          v-bind:key="`out-${index}`"
-          style="padding: 5px 0;"
-        >
-          <div>{{ draw.name }}</div>
-          <ul>
-            <li
-              v-for="(group, index0) in draw.got"
-              v-bind:key="`got-${index}-${index0}`"
-              style="padding: 5px 0;"
-            >
-              <ul style="display: flex; flex-wrap: wrap;">
-                <li
-                  v-for="(card, index1) in group.viewMask"
-                  v-bind:key="`card-${index}-${index0}-${index1}`"
-                >
-                  <div
-                    :style="(card.out ? 'opacity: 0.6;' : '') + 'width: 35px;'"
-                  >
-                    <span
-                      :style="
-                        draw.type === 'straight' ? 'font-weight: bold;' : ''
-                      "
-                      >{{ card.value.toUpperCase() }}</span
-                    >
-                    <span
-                      v-if="card.suit !== ''"
-                      :style="
-                        (card.suit === 'h' || card.suit === 'd'
-                          ? 'color: red;'
-                          : '') +
-                          (draw.type === 'flush' ? 'font-weight: bold;' : '')
-                      "
-                      >{{ card.suit.toUpperCase() }}</span
-                    >
-                  </div>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </li>
-      </ul>
-      <br />
+    <!-- <div v-if="draws && draws.length">
       <div v-if="allOdds">Оддсы: {{ allOdds.ratio }}, {{ allOdds.perc }}%</div>
       <div v-if="potOdds">
         Пот-оддсы: {{ potOdds.ratio }}, {{ potOdds.perc }}%
@@ -143,7 +148,7 @@
       <div v-if="typeof shouldCall === 'boolean'">
         Ставить? {{ shouldCall ? "Да" : "Нет" }}
       </div>
-    </div>
+    </div> -->
   </div>
 </template>
 
@@ -287,14 +292,14 @@ export default {
         }, {})
       ).sort((a, b) => a[0].valueWeight > b[0].valueWeight);
     },
-    draws: function() {
+    combAll: function() {
+      const temp = [];
+
       if (
         this.unseenDeck &&
         this.concatCards.length >= 5 &&
         this.concatCards.length < 7
       ) {
-        const temp = [];
-
         var groupBy = function(xs, key) {
           return xs.reduce(function(rv, x) {
             (rv[x[key]] = rv[x[key]] || []).push(x);
@@ -302,13 +307,24 @@ export default {
           }, {});
         };
 
-        const flush = Object.values(groupBy(this.concatCards, "suit"))
-          .filter((item) => item.length >= 3 && item.length <= 5)
-          .map((item) => {
-            return {
-              list: item,
-            };
+        const tempFlush = [];
+
+        Object.values(groupBy(this.concatCards, "suit")).forEach((item) => {
+          item.forEach((item0, index, array) => {
+            if (array.length - index >= 3) {
+              const corrected =
+                array.length - index >= 5 ? 5 : array.length - index;
+              tempFlush.push(array.slice(index, index + corrected));
+            }
           });
+        });
+
+        const flush = tempFlush.map((item) => {
+          return {
+            list: item,
+            type: "flush",
+          };
+        });
 
         if (flush.length) {
           flush.forEach((item) => {
@@ -343,13 +359,9 @@ export default {
             );
           });
 
-          if (flush.filter((item) => item.list.length === 5).length === 0) {
-            temp.push({
-              name: "Флеш-дро",
-              type: "flush",
-              got: flush,
-            });
-          }
+          flush.forEach((item) => {
+            temp.push(item);
+          });
         }
 
         const straightDeck = JSON.parse(
@@ -393,7 +405,7 @@ export default {
             }
           });
 
-          if (count >= 3) {
+          if (count > 3) {
             straights.push({
               list: item
                 .filter((item0) =>
@@ -403,6 +415,7 @@ export default {
                   this.concatCards.find((item1) => item1.value === item.value)
                 ),
               mask: item,
+              type: "straight",
             });
           }
         });
@@ -451,22 +464,70 @@ export default {
             item.viewMask = temp1;
           });
 
-          if (
-            straights.filter((item) => item.list.length === item.mask.length)
-              .length === 0
-          ) {
-            const got = straights.filter(
+          straights.forEach((item) => {
+            temp.push(item);
+          });
+        }
+      }
+
+      return temp;
+    },
+    draws: function() {
+      if (this.combAll.length) {
+        let temp = JSON.parse(JSON.stringify(this.combAll));
+
+        if (temp.filter((item) => item.list.length === 5).length) {
+          if (temp.find((item0) => item0.list.length === 5).type === "flush") {
+            temp = [];
+          } else {
+            temp = temp.filter(
               (item) =>
-                item.list.length >=
-                Math.max(...straights.map((el) => el.list.length))
+                item.type !== temp.find((item0) => item0.list.length === 5).type
             );
-            temp.push({
-              name: "Стрит-дро",
-              type: "straight",
-              got,
-            });
           }
         }
+
+        temp = temp.filter(
+          (item) => item.list.length >= (this.concatCards.length === 5 ? 3 : 4)
+        );
+
+        temp.forEach((item) => {
+          if (temp.filter((item1) => item1.type === item.type).length > 1) {
+            temp = temp.filter(
+              (item2) =>
+                !(
+                  item2.type === item.type &&
+                  item2.list.length !==
+                    Math.max(
+                      ...temp
+                        .filter((item1) => item1.type === item.type)
+                        .map((el) => el.list.length)
+                    )
+                )
+            );
+          }
+        });
+
+        temp.forEach((item, index) => {
+          if (
+            temp.filter(
+              (item1) =>
+                JSON.stringify(item1.outs) === JSON.stringify(item.outs)
+            ).length > 1
+          ) {
+            const maxWeight = Math.max(
+              ...temp
+                .filter(
+                  (item1) =>
+                    JSON.stringify(item1.outs) === JSON.stringify(item.outs)
+                )
+                .map((item1) => item1.mask[4].valueWeight)
+            );
+            if (item.mask[4].valueWeight !== maxWeight) {
+              temp = temp.filter((item1, index1) => index1 !== index);
+            }
+          }
+        });
 
         return temp;
       }
@@ -478,9 +539,7 @@ export default {
         let temp = [];
 
         this.draws.forEach((item) => {
-          item.got.forEach((item0) => {
-            temp = temp.concat(item0.outs);
-          });
+          temp = temp.concat(item.outs);
         });
 
         return temp.filter(
@@ -489,7 +548,7 @@ export default {
         );
       }
 
-      return null;
+      return [];
     },
     allOdds: function() {
       if (this.allOuts) {
@@ -500,7 +559,7 @@ export default {
           ),
         };
       }
-      return null;
+      return [];
     },
     potOdds: function() {
       if (this.call > 0 && this.pot > 0) {
@@ -557,11 +616,21 @@ export default {
     },
   },
 };
-
-// TODO: общая таблица всех карт, выбор карт кликом, выбранные карты меняют обводку или фон, в этой же таблице ауты показываем, убираем текстовые инпуты
 </script>
 
 <style lang="scss">
+@import "@/styles/variables";
+
+.container {
+  max-width: 1250px;
+  padding: 0 15px;
+  margin: 0 auto;
+}
+
+.out-section {
+  padding: 3rem 0;
+}
+
 .deck-wrapper {
   display: flex;
   justify-content: center;
@@ -593,10 +662,10 @@ export default {
   justify-content: center;
   width: 50px;
   height: (50px * 1.390625);
-  border: 1px solid darken(#f2f2f2, 10%);
+  border: 1px solid darken($background, 10%);
   border-radius: 5px;
   background-color: white;
-  color: #333;
+  color: $textColor;
   font-family: "Old Standard TT", serif;
   font-size: 24px;
   user-select: none;
@@ -610,53 +679,68 @@ export default {
 }
 
 .card.selectable:hover {
-  border-color: darken(#f2f2f2, 30%);
+  border-color: darken($background, 30%);
 }
 
 .card.selected {
   border-top-width: 3px;
   border-bottom-width: 3px;
-  border-color: #00ac1b;
+  border-color: $selected;
 }
 
 .card.selected:hover {
-  border-color: darken(#00ac1b, 10%);
+  border-color: darken($selected, 10%);
 }
 
 .card.out {
   border-top-width: 3px;
   border-bottom-width: 3px;
-  border-color: #11a7ff;
+  border-color: $out;
 }
 
 .card.out:hover {
-  border-color: darken(#11a7ff, 30%);
+  border-color: darken($out, 30%);
+}
+
+.card .suit {
+  font-size: 1.2em;
 }
 
 .red-suit {
-  color: #ff4b4b;
+  color: $redSuit;
 }
 
 .section-heading {
-  margin-bottom: 1em;
+  margin-bottom: 1.5em;
   font-size: 20px;
   text-align: center;
   font-weight: bold;
-  color: #333;
+  color: $textColor;
+}
+
+.instruction-heading {
+  margin-bottom: 20px;
+  font-size: 14px;
+  text-align: center;
+  font-weight: bold;
+  color: $textColor;
 }
 
 .message-container {
+  display: flex;
+  justify-content: center;
   margin: 20px 0;
 }
 
 .message {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: 400px;
   padding: 1em;
-  background-color: #ffe557;
+  background-color: $warning;
   border-radius: 10px;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 .message__icon {
@@ -670,22 +754,71 @@ export default {
   height: 25px;
 }
 
-.outs-container {
-  max-width: 300px;
-  margin: 20px auto;
+.outs-summary {
+  max-width: 400px;
+  margin: 20px auto 0;
+  font-size: 14px;
+  line-height: 1.4;
+  color: $textColor;
 }
 
-.outs-table td {
-  color: #333;
-  font-size: 16px;
-  line-height: 1.5;
+* + .outs-heading {
+  margin-top: 1em;
 }
 
-.outs-table td:first-child {
-  padding-right: 5px;
+.outs-heading {
+  margin-bottom: 0.5em;
+  font-weight: bold;
 }
 
-.outs-tr td {
-  color: #11a7ff;
+.text-selected {
+  color: $selected;
+}
+
+.text-out {
+  color: $out;
+}
+
+.big-number {
+  font-size: 2em;
+}
+
+.mini-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid $selected;
+}
+
+.mini-card.out {
+  border-color: $out;
+}
+
+.mini-card .straight,
+.mini-card .flush {
+  font-weight: bold;
+}
+
+.mini-card .suit {
+  font-size: 1.2em;
+}
+
+.draw-table td {
+  padding: 3px 0;
+  vertical-align: baseline;
+}
+
+.draw-table td:first-child {
+  padding-right: 6px;
+}
+
+.draw-list {
+  display: flex;
+}
+
+.draw-list li {
+  padding: 0 3px;
 }
 </style>
