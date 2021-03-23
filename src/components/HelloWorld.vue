@@ -71,43 +71,45 @@
             </li>
           </ul>
         </div>
-        <div class="outs-summary" v-if="notEnoughCards === false">
-          <div v-if="draws && draws.length">
-            <div class="outs-heading">Дро-комбинации</div>
-            <table class="draw-table">
-              <tr v-for="(draw, index) in draws" v-bind:key="`draw-${index}`">
-                <td>{{ draw.type === "flush" ? "Флеш" : "Стрит" }}</td>
-                <td>
-                  <ul class="draw-list">
-                    <li
-                      v-for="(card, index1) in draw.viewMask"
-                      v-bind:key="`card-${index}-${index1}`"
-                    >
-                      <div :class="['mini-card', { out: card.out }]">
-                        <div>
-                          <span
-                            :class="[{ straight: draw.type === 'straight' }]"
-                            >{{ card.value.toUpperCase() }}</span
-                          >
-                          <span
-                            v-if="card.suit !== ''"
-                            :class="[
-                              card.suit === 'h' || card.suit === 'd'
-                                ? 'red-suit'
-                                : '',
-                              { flush: draw.type === 'flush' },
-                              'suit',
-                            ]"
-                            >{{ suitToChar(card.suit) }}</span
-                          >
-                        </div>
+        <div
+          class="outs-summary"
+          v-if="notEnoughCards === false && draws && draws.length"
+        >
+          <div class="outs-heading">Дро-комбинации</div>
+          <table class="draw-table">
+            <tr v-for="(draw, index) in draws" v-bind:key="`draw-${index}`">
+              <td>{{ draw.type === "flush" ? "Флеш" : "Стрит" }}</td>
+              <td>
+                <ul class="draw-list">
+                  <li
+                    v-for="(card, index1) in draw.viewMask"
+                    v-bind:key="`card-${index}-${index1}`"
+                  >
+                    <div :class="['mini-card', { out: card.out }]">
+                      <div>
+                        <span
+                          :class="[{ straight: draw.type === 'straight' }]"
+                          >{{ card.value.toUpperCase() }}</span
+                        >
+                        <span
+                          v-if="card.suit !== ''"
+                          :class="[
+                            card.suit === 'h' || card.suit === 'd'
+                              ? 'red-suit'
+                              : '',
+                            { flush: draw.type === 'flush' },
+                            'suit',
+                          ]"
+                          >{{ suitToChar(card.suit) }}</span
+                        >
                       </div>
-                    </li>
-                  </ul>
-                </td>
-              </tr>
-            </table>
-          </div>
+                    </div>
+                  </li>
+                </ul>
+              </td>
+            </tr>
+          </table>
+
           <div class="outs-heading">Итого</div>
           <div>
             Ауты:
@@ -472,6 +474,27 @@ export default {
 
       return temp;
     },
+    completed: function() {
+      let temp0 = [];
+
+      if (this.combAll.length) {
+        let temp = JSON.parse(JSON.stringify(this.combAll));
+
+        if (temp.filter((item) => item.list.length === 5).length) {
+          temp0 = temp.filter((item) => item.list.length === 5);
+        }
+
+        if (temp.filter((item) => item.type === "flush").length) {
+          temp0 = temp.filter((item) => item.type === "flush");
+        }
+
+        // TODO: проверка на старшую карту
+      }
+
+      console.log(temp0)
+
+      return temp0;
+    },
     draws: function() {
       if (this.combAll.length) {
         let temp = JSON.parse(JSON.stringify(this.combAll));
@@ -662,7 +685,7 @@ export default {
   justify-content: center;
   width: 50px;
   height: (50px * 1.390625);
-  border: 1px solid darken($background, 10%);
+  border: 2px solid transparent;
   border-radius: 5px;
   background-color: white;
   color: $textColor;
@@ -674,32 +697,34 @@ export default {
 }
 
 .card.selectable {
+  box-shadow: 0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14),
+    0 1px 5px 0 rgba(0, 0, 0, 0.12);
   pointer-events: all;
   cursor: pointer;
 }
 
 .card.selectable:hover {
-  border-color: darken($background, 30%);
+  box-shadow: 0 2px 1px -1px rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(0, 0, 0, 0.14),
+    0 1px 3px 0 rgba(0, 0, 0, 0.12);
 }
 
 .card.selected {
-  border-top-width: 3px;
-  border-bottom-width: 3px;
   border-color: $selected;
+  box-shadow: none;
 }
 
 .card.selected:hover {
   border-color: darken($selected, 10%);
+  box-shadow: none;
 }
 
 .card.out {
-  border-top-width: 3px;
-  border-bottom-width: 3px;
   border-color: $out;
 }
 
 .card.out:hover {
   border-color: darken($out, 30%);
+  box-shadow: none;
 }
 
 .card .suit {
@@ -741,6 +766,7 @@ export default {
   background-color: $warning;
   border-radius: 10px;
   font-size: 14px;
+  border: 2px solid $textColor;
 }
 
 .message__icon {
@@ -757,9 +783,13 @@ export default {
 .outs-summary {
   max-width: 400px;
   margin: 20px auto 0;
+  padding: 10px;
+  border-radius: 10px;
+  background-color: white;
   font-size: 14px;
   line-height: 1.4;
   color: $textColor;
+  border: 2px solid $textColor;
 }
 
 * + .outs-heading {
@@ -790,6 +820,7 @@ export default {
   width: 30px;
   height: 30px;
   border: 1px solid $selected;
+  border-radius: 3px;
 }
 
 .mini-card.out {
