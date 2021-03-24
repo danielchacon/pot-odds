@@ -1,10 +1,13 @@
 <template>
   <div>
+    <header class="site-header">
+      <h1 class="site-heading">Калькулятор шансов в покере</h1>
+    </header>
     <section class="out-section">
       <div class="container">
-        <div class="section-heading">
+        <h2 class="section-heading">
           Шансы усиления руки
-        </div>
+        </h2>
         <div class="instruction-heading">
           Выберите 5-6 карт (2 ручные карты и 3-4 на столе)
         </div>
@@ -81,84 +84,95 @@
           <div class="outs-summary__section" v-if="completed.length">
             <div class="outs-heading">Полные комбинации</div>
             <table class="draw-table">
-              <tr
-                v-for="(comb, index) in completed"
-                v-bind:key="`comb-${index}`"
-              >
-                <td>{{ comb.type === "flush" ? "Флеш" : "Стрит" }}</td>
-                <td>
-                  <ul class="draw-list">
-                    <li
-                      v-for="(card, index1) in comb.viewMask"
-                      v-bind:key="`card-${index}-${index1}`"
-                    >
-                      <div class="mini-card">
-                        <div>
-                          <span
-                            :class="[{ straight: comb.type === 'straight' }]"
-                            >{{ card.value.toUpperCase() }}</span
-                          >
-                          <span
-                            v-if="card.suit !== ''"
-                            :class="[
-                              card.suit === 'h' || card.suit === 'd'
-                                ? 'red-suit'
-                                : '',
-                              { flush: comb.type === 'flush' },
-                              'suit',
-                            ]"
-                            >{{ suitToChar(card.suit) }}</span
-                          >
+              <tbody>
+                <tr
+                  v-for="(comb, index) in completed"
+                  v-bind:key="`comb-${index}`"
+                >
+                  <td>{{ comb.type === "flush" ? "Флеш" : "Стрит" }}</td>
+                  <td>
+                    <ul class="draw-list">
+                      <li
+                        v-for="(card, index1) in comb.viewMask"
+                        v-bind:key="`card-${index}-${index1}`"
+                      >
+                        <div class="mini-card">
+                          <div>
+                            <span
+                              :class="[{ straight: comb.type === 'straight' }]"
+                              >{{ card.value.toUpperCase() }}</span
+                            >
+                            <span
+                              v-if="card.suit !== ''"
+                              :class="[
+                                card.suit === 'h' || card.suit === 'd'
+                                  ? 'red-suit'
+                                  : '',
+                                { flush: comb.type === 'flush' },
+                                'suit',
+                              ]"
+                              >{{ suitToChar(card.suit) }}</span
+                            >
+                          </div>
                         </div>
-                      </div>
-                    </li>
-                  </ul>
-                </td>
-              </tr>
+                      </li>
+                    </ul>
+                  </td>
+                </tr>
+              </tbody>
             </table>
           </div>
           <div class="outs-summary__section" v-if="draws && draws.length">
             <div class="outs-heading">Дро-комбинации</div>
             <table class="draw-table">
-              <tr v-for="(draw, index) in draws" v-bind:key="`draw-${index}`">
-                <td>{{ draw.type === "flush" ? "Флеш" : "Стрит" }}</td>
-                <td>
-                  <ul class="draw-list">
-                    <li
-                      v-for="(card, index1) in draw.viewMask"
-                      v-bind:key="`card-${index}-${index1}`"
-                    >
-                      <div :class="['mini-card', { out: card.out }]">
-                        <div>
-                          <span
-                            :class="[{ straight: draw.type === 'straight' }]"
-                            >{{ card.value.toUpperCase() }}</span
-                          >
-                          <span
-                            v-if="card.suit !== ''"
-                            :class="[
-                              card.suit === 'h' || card.suit === 'd'
-                                ? 'red-suit'
-                                : '',
-                              { flush: draw.type === 'flush' },
-                              'suit',
-                            ]"
-                            >{{ suitToChar(card.suit) }}</span
-                          >
+              <thead>
+                <tr>
+                  <th colspan="2"></th>
+                  <th>Ауты</th>
+                  <th>Шансы</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(draw, index) in draws" v-bind:key="`draw-${index}`">
+                  <td>{{ draw.type === "flush" ? "Флеш" : "Стрит" }}</td>
+                  <td>
+                    <ul class="draw-list">
+                      <li
+                        v-for="(card, index1) in draw.viewMask"
+                        v-bind:key="`card-${index}-${index1}`"
+                      >
+                        <div :class="['mini-card', { out: card.out }]">
+                          <div>
+                            <span
+                              :class="[{ straight: draw.type === 'straight' }]"
+                              >{{ card.value.toUpperCase() }}</span
+                            >
+                            <span
+                              v-if="card.suit !== ''"
+                              :class="[
+                                card.suit === 'h' || card.suit === 'd'
+                                  ? 'red-suit'
+                                  : '',
+                                { flush: draw.type === 'flush' },
+                                'suit',
+                              ]"
+                              >{{ suitToChar(card.suit) }}</span
+                            >
+                          </div>
                         </div>
-                      </div>
-                    </li>
-                  </ul>
-                </td>
-                <td>
-                  <span class="text-out">{{ draw.outs.length }} аутов</span>
-                </td>
-                <td>
-                  <span class="text-out"
-                    >{{ draw.odds.ratio }} / {{ draw.odds.perc }}%</span
-                  >
-                </td>
-              </tr>
+                      </li>
+                    </ul>
+                  </td>
+                  <td class="td-outs">
+                    <span class="text-out">{{ draw.outs.length }}</span>
+                  </td>
+                  <td class="td-odds">
+                    <span class="text-out"
+                      >{{ draw.odds.ratio }} / {{ draw.odds.perc }}%</span
+                    >
+                  </td>
+                </tr>
+              </tbody>
             </table>
 
             <div class="outs-heading">Итого</div>
@@ -173,43 +187,157 @@
             </div>
           </div>
         </div>
+        <div
+          class="outs-summary"
+          v-if="
+            notEnoughCards === false &&
+              completed.length === 0 &&
+              (draws === null || draws.length === 0)
+          "
+        >
+          <div class="outs-heading outs-heading--single">
+            У вас нет подходящих комбинаций
+          </div>
+        </div>
       </div>
     </section>
     <section class="pot-section">
       <div class="container">
-        <div class="section-heading">
+        <h2 class="section-heading">
           Шансы банка
-        </div>
+        </h2>
         <div class="instruction-heading">
           Укажите сумму ставки и сумму в банке
         </div>
         <div class="pot-form">
           <div class="pot-form__cell">
             <div class="text-field-wrapper">
-              <input type="number" v-model="call" class="text-field" /><label
-                class="text-field-label"
-                >Ставка</label
-              >
+              <label class="text-field-label">Ставка</label>
+              <input
+                type="number"
+                v-model.number="call"
+                class="text-field"
+                @keypress="isNumber($event)"
+              />
             </div>
           </div>
           <div class="pot-form__cell">
             <div class="text-field-wrapper">
-              <input type="number" v-model="pot" class="text-field" />
               <label class="text-field-label">Банк</label>
+              <input
+                type="number"
+                v-model.number="pot"
+                class="text-field"
+                @keypress="isNumber($event)"
+              />
             </div>
           </div>
         </div>
+        <div class="message-container" v-if="potOdds === null">
+          <ul>
+            <li>
+              <div class="message">
+                <div class="message__icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="24px"
+                    viewBox="0 0 24 24"
+                    width="24px"
+                  >
+                    <path
+                      d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
+                    />
+                  </svg>
+                </div>
+                <div class="message__text">
+                  Укажите корректные размеры ставки и банка
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div class="pot-results" v-if="potOdds">
+          Шансы <span class="big-number text-out">{{ potOdds.ratio }}</span> или
+          <span class="big-number text-out">{{ potOdds.perc }}%</span>
+        </div>
       </div>
     </section>
-    <!-- <div v-if="draws && draws.length">
-      <div v-if="allOdds">Оддсы: {{ allOdds.ratio }}, {{ allOdds.perc }}%</div>
-      <div v-if="potOdds">
-        Пот-оддсы: {{ potOdds.ratio }}, {{ potOdds.perc }}%
+    <section class="prediction-section">
+      <div class="container">
+        <div class="section-heading">
+          Рекомендация
+        </div>
+        <div class="message-container" v-if="!(potOdds && draws && draws.length)">
+          <ul>
+            <li>
+              <div class="message">
+                <div class="message__icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    height="24px"
+                    viewBox="0 0 24 24"
+                    width="24px"
+                  >
+                    <path
+                      d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
+                    />
+                  </svg>
+                </div>
+                <div class="message__text">
+                  Произведите расчет шансов руки и банка
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div v-if="potOdds && draws && draws.length">
+          <table class="prediction-table">
+          <thead>
+            <tr>
+              <th>Шансы...</th>
+              <th colspan="2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>...руки</td>
+              <td>
+                <span class="big-number text-out"
+                  >{{ allOdds.ratio }} / {{ allOdds.perc }}%</span
+                >
+              </td>
+
+              <td>
+                <div class="prediction-bar prediction-bar--hand">
+                  <div :style="`width: ${allOdds.perc}%`"></div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td>...банка</td>
+              <td>
+                <span class="big-number text-out"
+                  >{{ potOdds.ratio }} / {{ potOdds.perc }}%</span
+                >
+              </td>
+              <td>
+                <div class="prediction-bar prediction-bar--pot">
+                  <div :style="`width: ${potOdds.perc}%`"></div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="prediction">
+          Рекомендуется
+          <br />
+          <span :class="[shouldCall ? 'yes' : 'no', 'big-number']">{{
+            shouldCall ? "СТАВИТЬ" : "НЕ СТАВИТЬ"
+          }}</span>
+        </div>
+        </div>
       </div>
-      <div v-if="typeof shouldCall === 'boolean'">
-        Ставить? {{ shouldCall ? "Да" : "Нет" }}
-      </div>
-    </div> -->
+    </section>
   </div>
 </template>
 
@@ -669,10 +797,13 @@ export default {
       return [];
     },
     potOdds: function() {
-      if (this.call > 0 && this.pot > 0) {
+      const call = this.call.length === 0 ? 0 : this.call;
+      const pot = this.pot.length === 0 ? 0 : this.pot;
+
+      if (call > 0 && pot > 0) {
         return {
-          ratio: ratio(this.call, this.pot),
-          perc: Math.round((this.call / this.pot) * 100),
+          ratio: ratio(call, pot),
+          perc: Math.round((call / pot) * 100),
         };
       }
 
@@ -721,6 +852,15 @@ export default {
         }
       }
     },
+    isNumber: function(evt) {
+      evt = evt ? evt : window.event;
+      var charCode = evt.which ? evt.which : evt.keyCode;
+      if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+        evt.preventDefault();
+      } else {
+        return true;
+      }
+    },
   },
 };
 </script>
@@ -734,8 +874,20 @@ export default {
   margin: 0 auto;
 }
 
+.site-header {
+  padding: 2rem 0;
+  background-color: white;
+}
+
+.site-heading {
+  font-size: 30px;
+  font-weight: bold;
+  color: $textColor;
+  text-align: center;
+}
+
 .out-section {
-  padding: 3rem 0;
+  padding: 2rem 0;
 }
 
 .deck-wrapper {
@@ -883,6 +1035,11 @@ export default {
   font-weight: bold;
 }
 
+.outs-heading--single {
+  margin-bottom: 0;
+  text-align: center;
+}
+
 * + .outs-heading {
   margin-top: 2em;
 }
@@ -926,6 +1083,12 @@ export default {
   margin: -3px 0;
 }
 
+.draw-table th {
+  padding: 3px 6px;
+  font-weight: normal;
+  text-align: center;
+}
+
 .draw-table td {
   padding: 3px 6px;
   vertical-align: baseline;
@@ -939,6 +1102,11 @@ export default {
   padding-right: 0;
 }
 
+.td-outs,
+.td-odds {
+  text-align: center;
+}
+
 .draw-list {
   display: flex;
   margin: 0 -3px;
@@ -949,13 +1117,142 @@ export default {
 }
 
 .pot-section {
-  padding: 3rem 0;
+  padding: 2rem 0;
+  background-color: white;
 }
 
 .pot-form {
   display: flex;
+  justify-content: center;
   padding: 2em;
   border: 1px solid $out;
   border-radius: 10px;
+}
+
+.pot-form__cell {
+  flex: 0 0 200px;
+  padding: 0 10px;
+}
+
+.text-field-wrapper {
+  position: relative;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+input {
+  outline: none;
+  box-shadow: none;
+}
+
+.text-field {
+  display: block;
+  height: 50px;
+  width: 100%;
+  border-bottom: 2px solid darken($background, 20%);
+  text-align: center;
+  font-size: 30px;
+  color: $textColor;
+  background-color: darken($background, 1);
+}
+
+.text-field-label {
+  display: block;
+  margin-bottom: 0.5em;
+  text-align: center;
+  font-size: 14px;
+  color: $textColor;
+}
+
+.pot-results {
+  max-width: 500px;
+  margin: 20px auto 0;
+  font-size: 16px;
+  text-align: center;
+}
+
+.prediction-section {
+  padding: 2rem 0;
+}
+
+.prediction-bar {
+  position: relative;
+  height: 40px;
+  background-color: darken($background, 10%);
+}
+
+.prediction-bar > * {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+}
+
+.prediction-bar--hand > * {
+  background-color: $out;
+}
+
+.prediction-bar--pot > * {
+  background-color: $selected;
+}
+
+.prediction-table {
+  min-width: 100%;
+  margin: -3px 0;
+}
+
+.prediction-table th {
+  padding: 6px 12px;
+  font-weight: normal;
+  text-align: center;
+}
+
+.prediction-table td {
+  padding: 6px 12px;
+  vertical-align: middle;
+  font-size: 16px;
+  color: $textColor;
+}
+
+.prediction-table td:first-child {
+  padding-left: 0;
+}
+
+.prediction-table td:first-child,
+.prediction-table td:nth-child(2) {
+  width: 0;
+  white-space: nowrap;
+}
+
+.prediction-table td:last-child {
+  padding-right: 0;
+}
+
+.prediction {
+  margin-top: 2em;
+  font-size: 16px;
+  text-align: center;
+  line-height: 1.5;
+  color: $textColor;
+}
+
+.prediction .big-number {
+  font-weight: bold;
+}
+
+.prediction .big-number.yes {
+  color: $selected;
+}
+
+.prediction .big-number.no {
+  color: $redSuit;
 }
 </style>
