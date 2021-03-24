@@ -3,7 +3,7 @@
     <section class="out-section">
       <div class="container">
         <div class="section-heading">
-          Вероятность усиления руки
+          Шансы усиления руки
         </div>
         <div class="instruction-heading">
           Выберите 5-6 карт (2 ручные карты и 3-4 на столе)
@@ -73,75 +73,134 @@
         </div>
         <div
           class="outs-summary"
-          v-if="notEnoughCards === false && draws && draws.length"
+          v-if="
+            notEnoughCards === false &&
+              (completed.length || (draws && draws.length))
+          "
         >
-          <div class="outs-heading">Дро-комбинации</div>
-          <table class="draw-table">
-            <tr v-for="(draw, index) in draws" v-bind:key="`draw-${index}`">
-              <td>{{ draw.type === "flush" ? "Флеш" : "Стрит" }}</td>
-              <td>
-                <ul class="draw-list">
-                  <li
-                    v-for="(card, index1) in draw.viewMask"
-                    v-bind:key="`card-${index}-${index1}`"
-                  >
-                    <div :class="['mini-card', { out: card.out }]">
-                      <div>
-                        <span
-                          :class="[{ straight: draw.type === 'straight' }]"
-                          >{{ card.value.toUpperCase() }}</span
-                        >
-                        <span
-                          v-if="card.suit !== ''"
-                          :class="[
-                            card.suit === 'h' || card.suit === 'd'
-                              ? 'red-suit'
-                              : '',
-                            { flush: draw.type === 'flush' },
-                            'suit',
-                          ]"
-                          >{{ suitToChar(card.suit) }}</span
-                        >
+          <div class="outs-summary__section" v-if="completed.length">
+            <div class="outs-heading">Полные комбинации</div>
+            <table class="draw-table">
+              <tr
+                v-for="(comb, index) in completed"
+                v-bind:key="`comb-${index}`"
+              >
+                <td>{{ comb.type === "flush" ? "Флеш" : "Стрит" }}</td>
+                <td>
+                  <ul class="draw-list">
+                    <li
+                      v-for="(card, index1) in comb.viewMask"
+                      v-bind:key="`card-${index}-${index1}`"
+                    >
+                      <div class="mini-card">
+                        <div>
+                          <span
+                            :class="[{ straight: comb.type === 'straight' }]"
+                            >{{ card.value.toUpperCase() }}</span
+                          >
+                          <span
+                            v-if="card.suit !== ''"
+                            :class="[
+                              card.suit === 'h' || card.suit === 'd'
+                                ? 'red-suit'
+                                : '',
+                              { flush: comb.type === 'flush' },
+                              'suit',
+                            ]"
+                            >{{ suitToChar(card.suit) }}</span
+                          >
+                        </div>
                       </div>
-                    </div>
-                  </li>
-                </ul>
-              </td>
-            </tr>
-          </table>
-
-          <div class="outs-heading">Итого</div>
-          <div>
-            Ауты:
-            <span class="big-number text-out">{{ allOuts.length }}</span>
+                    </li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
           </div>
-          <div>
-            Шансы:
-            <span class="big-number text-out">{{ allOdds.ratio }}</span> или
-            <span class="big-number text-out">{{ allOdds.perc }}%</span>
+          <div class="outs-summary__section" v-if="draws && draws.length">
+            <div class="outs-heading">Дро-комбинации</div>
+            <table class="draw-table">
+              <tr v-for="(draw, index) in draws" v-bind:key="`draw-${index}`">
+                <td>{{ draw.type === "flush" ? "Флеш" : "Стрит" }}</td>
+                <td>
+                  <ul class="draw-list">
+                    <li
+                      v-for="(card, index1) in draw.viewMask"
+                      v-bind:key="`card-${index}-${index1}`"
+                    >
+                      <div :class="['mini-card', { out: card.out }]">
+                        <div>
+                          <span
+                            :class="[{ straight: draw.type === 'straight' }]"
+                            >{{ card.value.toUpperCase() }}</span
+                          >
+                          <span
+                            v-if="card.suit !== ''"
+                            :class="[
+                              card.suit === 'h' || card.suit === 'd'
+                                ? 'red-suit'
+                                : '',
+                              { flush: draw.type === 'flush' },
+                              'suit',
+                            ]"
+                            >{{ suitToChar(card.suit) }}</span
+                          >
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </td>
+                <td>
+                  <span class="text-out">{{ draw.outs.length }} аутов</span>
+                </td>
+                <td>
+                  <span class="text-out"
+                    >{{ draw.odds.ratio }} / {{ draw.odds.perc }}%</span
+                  >
+                </td>
+              </tr>
+            </table>
+
+            <div class="outs-heading">Итого</div>
+            <div>
+              Ауты:
+              <span class="big-number text-out">{{ allOuts.length }}</span>
+            </div>
+            <div>
+              Шансы:
+              <span class="big-number text-out">{{ allOdds.ratio }}</span> или
+              <span class="big-number text-out">{{ allOdds.perc }}%</span>
+            </div>
           </div>
         </div>
       </div>
     </section>
     <section class="pot-section">
-      <div class="container"></div>
+      <div class="container">
+        <div class="section-heading">
+          Шансы банка
+        </div>
+        <div class="instruction-heading">
+          Укажите сумму ставки и сумму в банке
+        </div>
+        <div class="pot-form">
+          <div class="pot-form__cell">
+            <div class="text-field-wrapper">
+              <input type="number" v-model="call" class="text-field" /><label
+                class="text-field-label"
+                >Ставка</label
+              >
+            </div>
+          </div>
+          <div class="pot-form__cell">
+            <div class="text-field-wrapper">
+              <input type="number" v-model="pot" class="text-field" />
+              <label class="text-field-label">Банк</label>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
-    <div style="padding: 5px 0;">
-      Кон:
-      <input
-        type="number"
-        v-model="pot"
-        style="width: 150px; border-bottom: 1px solid black;"
-      />
-    </div>
-    <div style="padding: 5px 0;">
-      Колл:
-      <input
-        type="number"
-        v-model="call"
-        style="width: 150px; border-bottom: 1px solid black;"
-      />
-    </div>
     <!-- <div v-if="draws && draws.length">
       <div v-if="allOdds">Оддсы: {{ allOdds.ratio }}, {{ allOdds.perc }}%</div>
       <div v-if="potOdds">
@@ -342,6 +401,15 @@ export default {
           });
 
           flush.forEach((item) => {
+            item.odds = {
+              ratio: ratio(item.outs.length, this.unseenDeck.length),
+              perc: Math.round(
+                (item.outs.length / this.unseenDeck.length) * 100
+              ),
+            };
+          });
+
+          flush.forEach((item) => {
             item.concatCardsSorted = item.list.concat(
               this.concatCards.filter(
                 (item0) =>
@@ -407,7 +475,7 @@ export default {
             }
           });
 
-          if (count > 3) {
+          if (count >= 3) {
             straights.push({
               list: item
                 .filter((item0) =>
@@ -435,6 +503,15 @@ export default {
               (item0) =>
                 outValues.filter((item1) => item1.value === item0.value).length
             );
+          });
+
+          straights.forEach((item) => {
+            item.odds = {
+              ratio: ratio(item.outs.length, this.unseenDeck.length),
+              perc: Math.round(
+                (item.outs.length / this.unseenDeck.length) * 100
+              ),
+            };
           });
 
           straights.forEach((item) => {
@@ -478,20 +555,27 @@ export default {
       let temp0 = [];
 
       if (this.combAll.length) {
-        let temp = JSON.parse(JSON.stringify(this.combAll));
+        temp0 = JSON.parse(JSON.stringify(this.combAll));
 
-        if (temp.filter((item) => item.list.length === 5).length) {
-          temp0 = temp.filter((item) => item.list.length === 5);
+        temp0 = temp0.filter((item) => item.list.length === 5);
+
+        if (temp0.filter((item) => item.type === "flush").length) {
+          temp0 = temp0.filter((item) => item.type === "flush");
         }
 
-        if (temp.filter((item) => item.type === "flush").length) {
-          temp0 = temp.filter((item) => item.type === "flush");
-        }
-
-        // TODO: проверка на старшую карту
+        temp0.forEach((item, index) => {
+          if (temp0.filter((item1) => item1.type === item.type).length > 1) {
+            const maxWeight = Math.max(
+              ...temp0
+                .filter((item1) => item1.type === item.type)
+                .map((item1) => item1.list[4].valueWeight)
+            );
+            if (item.list[4].valueWeight !== maxWeight) {
+              temp0 = temp0.filter((item1, index1) => index1 !== index);
+            }
+          }
+        });
       }
-
-      console.log(temp0)
 
       return temp0;
     },
@@ -645,7 +729,7 @@ export default {
 @import "@/styles/variables";
 
 .container {
-  max-width: 1250px;
+  max-width: 800px;
   padding: 0 15px;
   margin: 0 auto;
 }
@@ -761,12 +845,11 @@ export default {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 400px;
+  min-width: 500px;
   padding: 1em;
   background-color: $warning;
   border-radius: 10px;
   font-size: 14px;
-  border: 2px solid $textColor;
 }
 
 .message__icon {
@@ -781,24 +864,27 @@ export default {
 }
 
 .outs-summary {
-  max-width: 400px;
+  max-width: 500px;
   margin: 20px auto 0;
-  padding: 10px;
+  padding: 2em;
   border-radius: 10px;
   background-color: white;
   font-size: 14px;
   line-height: 1.4;
   color: $textColor;
-  border: 2px solid $textColor;
 }
 
-* + .outs-heading {
-  margin-top: 1em;
+* + .outs-summary__section {
+  margin-top: 2em;
 }
 
 .outs-heading {
   margin-bottom: 0.5em;
   font-weight: bold;
+}
+
+* + .outs-heading {
+  margin-top: 2em;
 }
 
 .text-selected {
@@ -836,20 +922,40 @@ export default {
   font-size: 1.2em;
 }
 
+.draw-table {
+  margin: -3px 0;
+}
+
 .draw-table td {
-  padding: 3px 0;
+  padding: 3px 6px;
   vertical-align: baseline;
 }
 
 .draw-table td:first-child {
-  padding-right: 6px;
+  padding-left: 0;
+}
+
+.draw-table td:last-child {
+  padding-right: 0;
 }
 
 .draw-list {
   display: flex;
+  margin: 0 -3px;
 }
 
 .draw-list li {
   padding: 0 3px;
+}
+
+.pot-section {
+  padding: 3rem 0;
+}
+
+.pot-form {
+  display: flex;
+  padding: 2em;
+  border: 1px solid $out;
+  border-radius: 10px;
 }
 </style>
