@@ -1,13 +1,24 @@
 <template>
   <div>
     <header class="site-header">
-      <h1 class="site-heading">Калькулятор шансов в покере</h1>
+      <h1 class="site-heading">
+        <div>Шансы рук и шансы банка в покере:</div>
+        <div>онлайн-калькулятор</div>
+      </h1>
     </header>
     <section class="out-section">
       <div class="container">
         <h2 class="section-heading">
-          Шансы усиления руки
+          Шансы рук
         </h2>
+        <div class="section-text">
+          <p><strong>Ауты в покере</strong> — карты, которые улучшат руку до выигрышной.</p>
+          <p>В нашем случае — карты, которые помогут составить стрит или флеш на флопе (когда нам известно 5 карт) или терне (когда известно 6 карт).</p>
+          <p>Неполные комбинации карт называются <strong>дро-комбинации</strong> (отсюда названия <strong>стрит-дро</strong> и <strong>флеш-дро</strong>).</p>
+          <p><strong>Как считать ауты в покере?</strong> Определяем каких карт не хватает до составления стрита или флеша, и подсчитываем сколько таких карт осталось среди неизвестных нам карт.</p>
+          <p><strong>Калькулятор <span class="text-out">аутов</span> в покере</strong> поможет наглядно разобраться с подсчетами.</p>
+          <p><strong>Шансы рук</strong> — это шанс выпадения желаемых карт. Рассчитывается как соотношение количества аутов и количества неизвестных карт.</p>
+        </div>
         <div class="instruction-heading">
           Выберите 5-6 карт (2 ручные карты и 3-4 на столе)
         </div>
@@ -292,15 +303,9 @@
         </div>
         <div v-if="potOdds && draws && draws.length">
           <table class="prediction-table">
-          <thead>
-            <tr>
-              <th>Шансы...</th>
-              <th colspan="2"></th>
-            </tr>
-          </thead>
           <tbody>
             <tr>
-              <td>...руки</td>
+              <td>Шансы руки</td>
               <td>
                 <span class="big-number text-out"
                   >{{ allOdds.ratio }} / {{ allOdds.perc }}%</span
@@ -314,7 +319,7 @@
               </td>
             </tr>
             <tr>
-              <td>...банка</td>
+              <td>Шансы банка</td>
               <td>
                 <span class="big-number text-out"
                   >{{ potOdds.ratio }} / {{ potOdds.perc }}%</span
@@ -880,11 +885,21 @@ export default {
 }
 
 .site-heading {
-  font-size: 30px;
-  font-weight: bold;
-  color: $textColor;
+  font-size: 25px;
+  line-height: 1.5;
   text-align: center;
 }
+
+.site-heading *:first-child {  
+  font-weight: bold;
+  color: $textColor;
+}
+
+.site-heading *:last-child {
+  font-size: 0.8em;
+  color: $out;
+}
+
 
 .out-section {
   padding: 2rem 0;
@@ -977,6 +992,26 @@ export default {
   text-align: center;
   font-weight: bold;
   color: $textColor;
+}
+
+.section-text {
+  margin-bottom: 2.2em;
+  font-size: 13px;
+  line-height: 1.5;
+  color: $textColor;
+  letter-spacing: 0.03em;
+}
+
+.section-text p {
+  margin: 0.8em 0;
+}
+
+.section-text p:first-child {
+  margin-top: 0;
+}
+
+.section-text p:last-child {
+  margin-bottom: 0;
 }
 
 .instruction-heading {
