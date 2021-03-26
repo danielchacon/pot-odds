@@ -250,6 +250,14 @@
         <h2 class="section-heading">
           Шансы банка
         </h2>
+        <div class="section-text">
+          <p>
+            <strong>Шансы банка в покере</strong> — это соотношение коллируемой ставки и размера банка.
+          </p>
+          <p>
+            Ниже представлен <strong>калькулятор шансов банка</strong>.
+          </p>
+        </div>
         <div class="instruction-heading">
           Укажите сумму ставки и сумму в банке
         </div>
@@ -310,6 +318,14 @@
       <div class="container">
         <div class="section-heading">
           Рекомендация
+        </div>
+        <div class="section-text">
+          <p>
+            Знание <strong>шансов рук</strong> и <strong>шансов банка</strong> позволяет принять решение о выгодности ставки.
+          </p>
+          <p>
+            Считается, что ставка выгодна, если <strong>шансы рук</strong> больше <strong>шансов банка</strong>.
+          </p>
         </div>
         <div
           class="message-container"
@@ -844,7 +860,7 @@ export default {
       if (call > 0 && pot > 0) {
         return {
           ratio: ratio(call, pot),
-          perc: Math.round((call / pot) * 100),
+          perc: Math.round((call / (pot + call)) * 100),
         };
       }
 
