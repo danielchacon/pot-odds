@@ -12,12 +12,33 @@
           Шансы рук
         </h2>
         <div class="section-text">
-          <p><strong>Ауты в покере</strong> — карты, которые улучшат руку до выигрышной.</p>
-          <p>В нашем случае — карты, которые помогут составить стрит или флеш на флопе (когда нам известно 5 карт) или терне (когда известно 6 карт).</p>
-          <p>Неполные комбинации карт называются <strong>дро-комбинации</strong> (отсюда названия <strong>стрит-дро</strong> и <strong>флеш-дро</strong>).</p>
-          <p><strong>Как считать ауты в покере?</strong> Определяем каких карт не хватает до составления стрита или флеша, и подсчитываем сколько таких карт осталось среди неизвестных нам карт.</p>
-          <p><strong>Калькулятор <span class="text-out">аутов</span> в покере</strong> поможет наглядно разобраться с подсчетами.</p>
-          <p><strong>Шансы рук</strong> — это шанс выпадения желаемых карт. Рассчитывается как соотношение количества аутов и количества неизвестных карт.</p>
+          <p>
+            <strong>Ауты в покере</strong> — карты, которые улучшат руку до
+            выигрышной.
+          </p>
+          <p>
+            В нашем случае — карты, которые помогут составить стрит или флеш на
+            флопе (когда нам известно 5 карт) или терне (когда известно 6 карт).
+          </p>
+          <p>
+            Неполные комбинации карт называются
+            <strong>дро-комбинации</strong> (отсюда названия
+            <strong>стрит-дро</strong> и <strong>флеш-дро</strong>).
+          </p>
+          <p>
+            <strong>Как считать ауты в покере?</strong> Определяем каких карт не
+            хватает до составления стрита или флеша, и подсчитываем сколько
+            таких карт осталось среди неизвестных нам карт.
+          </p>
+          <p>
+            <strong>Калькулятор аутов в покере</strong> поможет наглядно
+            разобраться с подсчетами.
+          </p>
+          <p>
+            <strong>Шансы рук</strong> — это шанс выпадения желаемых карт.
+            Рассчитывается как соотношение количества аутов и количества
+            неизвестных карт.
+          </p>
         </div>
         <div class="instruction-heading">
           Выберите 5-6 карт (2 ручные карты и 3-4 на столе)
@@ -59,6 +80,18 @@
                   </div>
                 </li>
               </ul>
+            </li>
+          </ul>
+        </div>
+        <div class="deck-legend-wrapper">
+          <ul class="deck-legend">
+            <li>
+              <span class="deck-legend__box deck-legend__box--hand"></span> —
+              ваши карты
+            </li>
+            <li>
+              <span class="deck-legend__box deck-legend__box--outs"></span> —
+              ауты
             </li>
           </ul>
         </div>
@@ -278,7 +311,10 @@
         <div class="section-heading">
           Рекомендация
         </div>
-        <div class="message-container" v-if="!(potOdds && draws && draws.length)">
+        <div
+          class="message-container"
+          v-if="!(potOdds && draws && draws.length)"
+        >
           <ul>
             <li>
               <div class="message">
@@ -303,43 +339,43 @@
         </div>
         <div v-if="potOdds && draws && draws.length">
           <table class="prediction-table">
-          <tbody>
-            <tr>
-              <td>Шансы руки</td>
-              <td>
-                <span class="big-number text-out"
-                  >{{ allOdds.ratio }} / {{ allOdds.perc }}%</span
-                >
-              </td>
+            <tbody>
+              <tr>
+                <td>Шансы руки</td>
+                <td>
+                  <span class="big-number text-out"
+                    >{{ allOdds.ratio }} / {{ allOdds.perc }}%</span
+                  >
+                </td>
 
-              <td>
-                <div class="prediction-bar prediction-bar--hand">
-                  <div :style="`width: ${allOdds.perc}%`"></div>
-                </div>
-              </td>
-            </tr>
-            <tr>
-              <td>Шансы банка</td>
-              <td>
-                <span class="big-number text-out"
-                  >{{ potOdds.ratio }} / {{ potOdds.perc }}%</span
-                >
-              </td>
-              <td>
-                <div class="prediction-bar prediction-bar--pot">
-                  <div :style="`width: ${potOdds.perc}%`"></div>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="prediction">
-          Рекомендуется
-          <br />
-          <span :class="[shouldCall ? 'yes' : 'no', 'big-number']">{{
-            shouldCall ? "СТАВИТЬ" : "НЕ СТАВИТЬ"
-          }}</span>
-        </div>
+                <td>
+                  <div class="prediction-bar prediction-bar--hand">
+                    <div :style="`width: ${allOdds.perc}%`"></div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Шансы банка</td>
+                <td>
+                  <span class="big-number text-out"
+                    >{{ potOdds.ratio }} / {{ potOdds.perc }}%</span
+                  >
+                </td>
+                <td>
+                  <div class="prediction-bar prediction-bar--pot">
+                    <div :style="`width: ${potOdds.perc}%`"></div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="prediction">
+            Рекомендуется
+            <br />
+            <span :class="[shouldCall ? 'yes' : 'no', 'big-number']">{{
+              shouldCall ? "СТАВИТЬ" : "НЕ СТАВИТЬ"
+            }}</span>
+          </div>
         </div>
       </div>
     </section>
@@ -890,7 +926,7 @@ export default {
   text-align: center;
 }
 
-.site-heading *:first-child {  
+.site-heading *:first-child {
   font-weight: bold;
   color: $textColor;
 }
@@ -899,7 +935,6 @@ export default {
   font-size: 0.8em;
   color: $out;
 }
-
 
 .out-section {
   padding: 2rem 0;
@@ -1199,6 +1234,14 @@ input {
   background-color: darken($background, 1);
 }
 
+.text-field:hover {
+  border-bottom: 2px solid darken($background, 40%);
+}
+
+.text-field:focus {
+  border-bottom: 2px solid $out;
+}
+
 .text-field-label {
   display: block;
   margin-bottom: 0.5em;
@@ -1289,5 +1332,36 @@ input {
 
 .prediction .big-number.no {
   color: $redSuit;
+}
+
+.deck-legend-wrapper {
+  margin-top: 20px;
+}
+
+.deck-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: -10px;
+}
+
+.deck-legend li {
+  padding: 10px;
+  font-size: 12px;
+  color: $textColor;
+}
+
+.deck-legend__box {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+}
+
+.deck-legend__box--hand {
+  background-color: $selected;
+}
+
+.deck-legend__box--outs {
+  background-color: $out;
 }
 </style>
