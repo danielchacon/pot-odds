@@ -270,26 +270,28 @@
           Укажите сумму ставки и сумму в банке
         </div>
         <div class="pot-form">
-          <div class="pot-form__cell">
-            <div class="text-field-wrapper">
-              <label class="text-field-label">Ставка</label>
-              <input
-                type="text"
-                v-model.number="call"
-                class="text-field"
-                @keypress="isNumber($event)"
-              />
+          <div class="pot-form__list">
+            <div class="pot-form__cell">
+              <div class="text-field-wrapper">
+                <label class="text-field-label">Ставка</label>
+                <input
+                  type="text"
+                  v-model.number="call"
+                  class="text-field"
+                  @keypress="isNumber($event)"
+                />
+              </div>
             </div>
-          </div>
-          <div class="pot-form__cell">
-            <div class="text-field-wrapper">
-              <label class="text-field-label">Банк</label>
-              <input
-                type="text"
-                v-model.number="pot"
-                class="text-field"
-                @keypress="isNumber($event)"
-              />
+            <div class="pot-form__cell">
+              <div class="text-field-wrapper">
+                <label class="text-field-label">Банк</label>
+                <input
+                  type="text"
+                  v-model.number="pot"
+                  class="text-field"
+                  @keypress="isNumber($event)"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -938,7 +940,10 @@ export default {
       if (newVal === null) {
         this.arrow = false;
       } else {
-        if (newVal !== oldVal && !isElementInViewport(document.getElementById("prediction"))) {
+        if (
+          newVal !== oldVal &&
+          !isElementInViewport(document.getElementById("prediction"))
+        ) {
           this.arrow = true;
         } else {
           this.arrow = false;
@@ -992,8 +997,8 @@ export default {
       if (isElementInViewport(document.getElementById("prediction"))) {
         this.arrow = false;
       }
-    }
-    
+    };
+
     addEventListener("scroll", handler, false);
     addEventListener("resize", handler, false);
   },
@@ -1009,9 +1014,8 @@ export default {
   margin-bottom: 20px;
 }
 
-.logo svg {
+.logo img {
   width: 100px;
-  height: auto;
 }
 
 .container {
@@ -1052,21 +1056,49 @@ export default {
 
 .ui-deck {
   display: flex;
+  justify-content: center;
   margin: 0 -5px;
+
+  @media screen and (max-width: 900px) {
+    flex-wrap: wrap;
+    margin: -5px;
+  }
 }
 
 .ui-deck > li {
   padding: 0 5px;
+
+  @media screen and (max-width: 900px) {
+    padding: 5px;
+  }
 }
 
 .ui-deck__group {
   display: flex;
   flex-direction: column;
-  margin: -5px 0;
+  margin: -2px 0;
+
+  @media screen and (max-width: 900px) {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    margin: -2px;
+    width: 108px;
+  }
+
+  @media screen and (max-width: 500px) {
+    width: 88px;
+  }
 }
 
 .ui-deck__group > li {
-  padding: 5px 0;
+  padding: 2px 0;
+
+  @media screen and (max-width: 900px) {
+    flex: 0 0 50%;
+    max-width: 50%;
+    padding: 2px;
+  }
 }
 
 .card {
@@ -1085,6 +1117,11 @@ export default {
   user-select: none;
   transition: 0.1s linear;
   pointer-events: none;
+
+  @media screen and (max-width: 500px) {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 .card.selectable {
@@ -1167,11 +1204,15 @@ export default {
   margin: 20px 0;
 }
 
+.message-container > ul {
+  width: 500px;
+  max-width: 100%;
+}
+
 .message {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 500px;
   padding: 1em;
   background-color: $warning;
   border-radius: 10px;
@@ -1296,16 +1337,30 @@ export default {
 }
 
 .pot-form {
-  display: flex;
-  justify-content: center;
   padding: 2em;
   border: 1px solid $out;
   border-radius: 10px;
+
+  @media screen and (max-width: 500px) {
+    padding: 1em;
+  }
+}
+
+.pot-form__list {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: -10px;
 }
 
 .pot-form__cell {
-  flex: 0 0 200px;
-  padding: 0 10px;
+  flex: 0 0 50%;
+  max-width: 220px;
+  padding: 10px;
+
+  @media screen and (max-width: 500px) {
+    flex: 0 0 100%;
+  }
 }
 
 .text-field-wrapper {
