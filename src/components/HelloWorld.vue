@@ -1,6 +1,9 @@
 <template>
   <div>
     <header class="site-header">
+      <div class="logo">
+        <img src="@/assets/logo.png" srcset="@/assets/logo@2x.png 2x" />
+      </div>
       <h1 class="site-heading">
         <div>Шансы рук и шансы банка в покере:</div>
         <div>онлайн-калькулятор</div>
@@ -8,17 +11,15 @@
     </header>
     <section class="out-section">
       <div class="container">
-        <h2 class="section-heading">
-          Шансы рук
-        </h2>
+        <h2 class="section-heading">Шансы рук</h2>
         <div class="section-text">
           <p>
-            <strong>Ауты в покере</strong> — карты, которые улучшат руку до
-            выигрышной.
+            <strong>Ауты в покере</strong> — карты, которые могут улучшить руку
+            до выигрышной.
           </p>
           <p>
-            В нашем случае — карты, которые помогут составить стрит или флеш на
-            флопе (когда нам известно 5 карт) или терне (когда известно 6 карт).
+            В нашем случае — все карты, которые на оставшихся раундах составят
+            стрит или флеш.
           </p>
           <p>
             Неполные комбинации карт называются
@@ -28,16 +29,19 @@
           <p>
             <strong>Как считать ауты в покере?</strong> Определяем каких карт не
             хватает до составления стрита или флеша, и подсчитываем сколько
-            таких карт осталось среди неизвестных нам карт.
+            таких карт осталось среди неизвестных нам.
+          </p>
+          <p>
+            <strong>Шансы рук</strong> — это шансы на составление полной
+            комбинации. Рассчитывается как соотношение аутов и неизвестных карт.
+          </p>
+          <p class="text-center">
+            <span class="formula">A : B</span> или
+            <span class="formula">(A / B) * 100%</span>
           </p>
           <p>
             <strong>Калькулятор аутов в покере</strong> поможет наглядно
             разобраться с подсчетами.
-          </p>
-          <p>
-            <strong>Шансы рук</strong> — это шанс выпадения желаемых карт.
-            Рассчитывается как соотношение количества аутов и количества
-            неизвестных карт.
           </p>
         </div>
         <div class="instruction-heading">
@@ -111,9 +115,7 @@
                     />
                   </svg>
                 </div>
-                <div class="message__text">
-                  Выбрано недостаточно карт
-                </div>
+                <div class="message__text">Выбрано недостаточно карт</div>
               </div>
             </li>
           </ul>
@@ -122,7 +124,7 @@
           class="outs-summary"
           v-if="
             notEnoughCards === false &&
-              (completed.length || (draws && draws.length))
+            (completed.length || (draws && draws.length))
           "
         >
           <div class="outs-summary__section" v-if="completed.length">
@@ -212,7 +214,7 @@
                   </td>
                   <td class="td-odds">
                     <span class="text-out"
-                      >{{ draw.odds.ratio }} / {{ draw.odds.perc }}%</span
+                      >{{ draw.odds.ratio }} или {{ draw.odds.perc }}%</span
                     >
                   </td>
                 </tr>
@@ -230,13 +232,18 @@
               <span class="big-number text-out">{{ allOdds.perc }}%</span>
             </div>
           </div>
+          <div class="outs-summary__section" v-else>
+            <div class="outs-heading outs-heading--single">
+              Нет дро-комбинаций
+            </div>
+          </div>
         </div>
         <div
           class="outs-summary"
           v-if="
             notEnoughCards === false &&
-              completed.length === 0 &&
-              (draws === null || draws.length === 0)
+            completed.length === 0 &&
+            (draws === null || draws.length === 0)
           "
         >
           <div class="outs-heading outs-heading--single">
@@ -247,16 +254,17 @@
     </section>
     <section class="pot-section">
       <div class="container">
-        <h2 class="section-heading">
-          Шансы банка
-        </h2>
+        <h2 class="section-heading">Шансы банка</h2>
         <div class="section-text">
           <p>
-            <strong>Шансы банка в покере</strong> — это соотношение коллируемой ставки и размера банка.
+            <strong>Шансы банка в покере</strong> — это соотношение коллируемой
+            ставки и размера банка.
           </p>
-          <p>
-            Ниже представлен <strong>калькулятор шансов банка</strong>.
+          <p class="text-center">
+            <span class="formula">A : B</span> или
+            <span class="formula">(A / (B + A)) * 100%</span>
           </p>
+          <p>Ниже представлен <strong>калькулятор шансов банка</strong>.</p>
         </div>
         <div class="instruction-heading">
           Укажите сумму ставки и сумму в банке
@@ -266,7 +274,7 @@
             <div class="text-field-wrapper">
               <label class="text-field-label">Ставка</label>
               <input
-                type="number"
+                type="text"
                 v-model.number="call"
                 class="text-field"
                 @keypress="isNumber($event)"
@@ -277,7 +285,7 @@
             <div class="text-field-wrapper">
               <label class="text-field-label">Банк</label>
               <input
-                type="number"
+                type="text"
                 v-model.number="pot"
                 class="text-field"
                 @keypress="isNumber($event)"
@@ -314,17 +322,18 @@
         </div>
       </div>
     </section>
-    <section class="prediction-section">
+    <section class="prediction-section" id="prediction">
       <div class="container">
-        <div class="section-heading">
-          Рекомендация
-        </div>
+        <div class="section-heading">Рекомендация</div>
         <div class="section-text">
           <p>
-            Знание <strong>шансов рук</strong> и <strong>шансов банка</strong> позволяет принять решение о выгодности ставки.
+            Знание <strong>шансов рук</strong> и
+            <strong>шансов банка</strong> позволяет принять решение о выгодности
+            ставки.
           </p>
           <p>
-            Считается, что ставка выгодна, если <strong>шансы рук</strong> больше <strong>шансов банка</strong>.
+            Считается, что ставка выгодна, если
+            <strong>шансы рук</strong> больше <strong>шансов банка</strong>.
           </p>
         </div>
         <div
@@ -346,8 +355,17 @@
                     />
                   </svg>
                 </div>
-                <div class="message__text">
-                  Произведите расчет шансов руки и банка
+                <div
+                  class="message__text"
+                  v-if="
+                    !(potOdds && draws && draws.length) &&
+                    completed.length === 0
+                  "
+                >
+                  Произведите расчет шансов рук и банка
+                </div>
+                <div class="message__text" v-if="completed.length > 0">
+                  Нет дро-комбинаций, расчет не требуется
                 </div>
               </div>
             </li>
@@ -359,8 +377,9 @@
               <tr>
                 <td>Шансы руки</td>
                 <td>
-                  <span class="big-number text-out"
-                    >{{ allOdds.ratio }} / {{ allOdds.perc }}%</span
+                  <span class="text-out"
+                    ><span class="big-number">{{ allOdds.ratio }}</span> или
+                    <span class="big-number">{{ allOdds.perc }}%</span></span
                   >
                 </td>
 
@@ -373,8 +392,9 @@
               <tr>
                 <td>Шансы банка</td>
                 <td>
-                  <span class="big-number text-out"
-                    >{{ potOdds.ratio }} / {{ potOdds.perc }}%</span
+                  <span class="text-out"
+                    ><span class="big-number">{{ potOdds.ratio }}</span> или
+                    <span class="big-number">{{ potOdds.perc }}%</span></span
                   >
                 </td>
                 <td>
@@ -395,6 +415,28 @@
         </div>
       </div>
     </section>
+    <footer class="site-footer">
+      <div class="container">
+        <a
+          href="https://forms.gle/4UQpXSpq4guQb2W68"
+          target="_blank"
+          class="contact-me"
+          >Задать вопрос разработчику</a
+        >
+      </div>
+    </footer>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      height="24px"
+      viewBox="0 0 24 24"
+      width="24px"
+      class="below"
+      v-if="arrow"
+    >
+      <path
+        d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"
+      />
+    </svg>
   </div>
 </template>
 
@@ -439,16 +481,29 @@ function ratio(x, y) {
   return `${x / c}:${y / c}`;
 }
 
+function isElementInViewport(el) {
+  var rect = el.getBoundingClientRect();
+
+  return (
+    rect.top >= 0 &&
+    rect.left >= 0 &&
+    rect.bottom <=
+      (window.innerHeight || document.documentElement.clientHeight) &&
+    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+  );
+}
+
 export default {
   data() {
     return {
       pot: 0,
       call: 0,
       concatCards: [],
+      arrow: false,
     };
   },
   computed: {
-    deck: function() {
+    deck: function () {
       var deck = new Array();
 
       for (var i = 0; i < suits.length; i++) {
@@ -481,7 +536,7 @@ export default {
 
       return deck;
     },
-    deckGrouped: function() {
+    deckGrouped: function () {
       const temp0 = JSON.parse(JSON.stringify(this.deck));
       const highlighted = temp0.map((item) => {
         const temp = item;
@@ -513,16 +568,16 @@ export default {
       });
 
       return Object.values(
-        highlighted.reduce(function(rv, x) {
+        highlighted.reduce(function (rv, x) {
           (rv[x["value"]] = rv[x["value"]] || []).push(x);
           return rv;
         }, {})
       ).sort((a, b) => a[0].valueWeight > b[0].valueWeight);
     },
-    notEnoughCards: function() {
+    notEnoughCards: function () {
       return this.concatCards.length < 5;
     },
-    unseenDeck: function() {
+    unseenDeck: function () {
       return this.deck.filter(
         (item) =>
           this.concatCards.filter(
@@ -530,15 +585,15 @@ export default {
           ).length === 0
       );
     },
-    unseenDeckGrouped: function() {
+    unseenDeckGrouped: function () {
       return Object.values(
-        this.unseenDeck.reduce(function(rv, x) {
+        this.unseenDeck.reduce(function (rv, x) {
           (rv[x["value"]] = rv[x["value"]] || []).push(x);
           return rv;
         }, {})
       ).sort((a, b) => a[0].valueWeight > b[0].valueWeight);
     },
-    combAll: function() {
+    combAll: function () {
       const temp = [];
 
       if (
@@ -546,8 +601,8 @@ export default {
         this.concatCards.length >= 5 &&
         this.concatCards.length < 7
       ) {
-        var groupBy = function(xs, key) {
-          return xs.reduce(function(rv, x) {
+        var groupBy = function (xs, key) {
+          return xs.reduce(function (rv, x) {
             (rv[x[key]] = rv[x[key]] || []).push(x);
             return rv;
           }, {});
@@ -736,7 +791,7 @@ export default {
 
       return temp;
     },
-    completed: function() {
+    completed: function () {
       let temp0 = [];
 
       if (this.combAll.length) {
@@ -764,7 +819,7 @@ export default {
 
       return temp0;
     },
-    draws: function() {
+    draws: function () {
       if (this.combAll.length) {
         let temp = JSON.parse(JSON.stringify(this.combAll));
 
@@ -826,7 +881,7 @@ export default {
 
       return null;
     },
-    allOuts: function() {
+    allOuts: function () {
       if (this.draws && this.draws.length) {
         let temp = [];
 
@@ -842,7 +897,7 @@ export default {
 
       return [];
     },
-    allOdds: function() {
+    allOdds: function () {
       if (this.allOuts) {
         return {
           ratio: ratio(this.allOuts.length, this.unseenDeck.length),
@@ -853,7 +908,7 @@ export default {
       }
       return [];
     },
-    potOdds: function() {
+    potOdds: function () {
       const call = this.call.length === 0 ? 0 : this.call;
       const pot = this.pot.length === 0 ? 0 : this.pot;
 
@@ -866,7 +921,7 @@ export default {
 
       return null;
     },
-    shouldCall: function() {
+    shouldCall: function () {
       if (this.draws && this.allOdds && this.potOdds) {
         if (this.allOdds.perc > this.potOdds.perc) {
           return true;
@@ -876,6 +931,19 @@ export default {
       }
 
       return null;
+    },
+  },
+  watch: {
+    shouldCall: function (newVal, oldVal) {
+      if (newVal === null) {
+        this.arrow = false;
+      } else {
+        if (newVal !== oldVal && !isElementInViewport(document.getElementById("prediction"))) {
+          this.arrow = true;
+        } else {
+          this.arrow = false;
+        }
+      }
     },
   },
   methods: {
@@ -909,7 +977,7 @@ export default {
         }
       }
     },
-    isNumber: function(evt) {
+    isNumber: function (evt) {
       evt = evt ? evt : window.event;
       var charCode = evt.which ? evt.which : evt.keyCode;
       if (charCode > 31 && (charCode < 48 || charCode > 57)) {
@@ -919,11 +987,32 @@ export default {
       }
     },
   },
+  mounted: function () {
+    const handler = () => {
+      if (isElementInViewport(document.getElementById("prediction"))) {
+        this.arrow = false;
+      }
+    }
+    
+    addEventListener("scroll", handler, false);
+    addEventListener("resize", handler, false);
+  },
 };
 </script>
 
 <style lang="scss">
 @import "@/styles/variables";
+
+.logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.logo svg {
+  width: 100px;
+  height: auto;
+}
 
 .container {
   max-width: 800px;
@@ -1038,7 +1127,7 @@ export default {
 }
 
 .section-heading {
-  margin-bottom: 1.5em;
+  margin-bottom: 1em;
   font-size: 20px;
   text-align: center;
   font-weight: bold;
@@ -1047,10 +1136,9 @@ export default {
 
 .section-text {
   margin-bottom: 2.2em;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
   color: $textColor;
-  letter-spacing: 0.03em;
 }
 
 .section-text p {
@@ -1379,5 +1467,61 @@ input {
 
 .deck-legend__box--outs {
   background-color: $out;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.formula {
+  background-color: rgba(0, 0, 0, 0.08);
+  padding: 0.5em;
+  font-style: italic;
+  font-family: "Old Standard TT", serif;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+.site-footer {
+  padding: 2rem 0;
+  background-color: white;
+}
+
+.site-footer .container {
+  display: flex;
+  justify-content: center;
+}
+
+.contact-me {
+  color: $out;
+  font-size: 12px;
+  text-decoration: underline;
+}
+
+@keyframes upDown {
+  0% {
+    transform: translate(-50%, 0);
+  }
+
+  50% {
+    transform: translate(-50%, -20%);
+  }
+
+  100% {
+    transform: translate(-50%, 0);
+  }
+}
+
+.below {
+  position: fixed;
+  left: 50%;
+  bottom: 3vh;
+  width: 100px;
+  height: auto;
+  fill: $selected;
+  opacity: 0.3;
+  transform: translateX(-50%);
+  pointer-events: none;
+  animation: upDown 1s linear infinite;
 }
 </style>
