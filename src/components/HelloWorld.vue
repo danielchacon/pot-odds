@@ -970,10 +970,11 @@ export default {
   },
   watch: {
     shouldCall: function(newVal, oldVal) {
+      console.log(newVal)
       if (newVal === null) {
         this.arrow = false;
       } else {
-        if (newVal !== oldVal && this.isElementInViewport) {
+        if (newVal !== oldVal && !this.isElementInViewport) {
           this.arrow = true;
         } else {
           this.arrow = false;
