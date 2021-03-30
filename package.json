@@ -12,7 +12,8 @@
     "destyle.css": "^2.0.2",
     "node-sass": "^5.0.0",
     "sass-loader": "^10.1.1",
-    "vue": "^2.6.11"
+    "vue": "^2.6.11",
+    "vue-observe-visibility": "^1.0.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^4.5.0",

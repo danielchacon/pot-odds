@@ -5,13 +5,13 @@
         <img src="@/assets/logo.png" srcset="@/assets/logo@2x.png 2x" />
       </div>
       <h1 class="site-heading">
-        <div>Шансы рук и шансы банка в покере:</div>
-        <div>онлайн-калькулятор</div>
+        <div>Шансы на улучшение и шансы банка в покере:</div>
+        <div>калькулятор</div>
       </h1>
     </header>
     <section class="out-section">
       <div class="container">
-        <h2 class="section-heading">Шансы рук</h2>
+        <h2 class="section-heading">Шансы на улучшение</h2>
         <div class="section-text">
           <p>
             <strong>Ауты в покере</strong> — карты, которые могут улучшить руку
@@ -32,8 +32,8 @@
             таких карт осталось среди неизвестных нам.
           </p>
           <p>
-            <strong>Шансы рук</strong> — это шансы на составление полной
-            комбинации. Рассчитывается как соотношение аутов и неизвестных карт.
+            <strong>Шансы на улучшение</strong> — это шансы составить полную
+            комбинацию. Рассчитывается как соотношение аутов и неизвестных карт.
           </p>
           <p class="text-center">
             <span class="formula">A : B</span> или
@@ -124,7 +124,7 @@
           class="outs-summary"
           v-if="
             notEnoughCards === false &&
-            (completed.length || (draws && draws.length))
+              (completed.length || (draws && draws.length))
           "
         >
           <div class="outs-summary__section" v-if="completed.length">
@@ -210,7 +210,10 @@
                     </ul>
                   </td>
                   <td class="td-outs">
-                    <span class="text-out">{{ draw.outs.length }}</span>
+                    <span class="text-out"
+                      >{{ draw.outs.length
+                      }}<span class="mobile-only"> аутов</span></span
+                    >
                   </td>
                   <td class="td-odds">
                     <span class="text-out"
@@ -242,8 +245,8 @@
           class="outs-summary"
           v-if="
             notEnoughCards === false &&
-            completed.length === 0 &&
-            (draws === null || draws.length === 0)
+              completed.length === 0 &&
+              (draws === null || draws.length === 0)
           "
         >
           <div class="outs-heading outs-heading--single">
@@ -324,7 +327,11 @@
         </div>
       </div>
     </section>
-    <section class="prediction-section" id="prediction">
+    <section
+      class="prediction-section"
+      id="prediction"
+      v-observe-visibility="visibilityChanged"
+    >
       <div class="container">
         <div class="section-heading">Рекомендация</div>
         <div class="section-text">
@@ -361,7 +368,7 @@
                   class="message__text"
                   v-if="
                     !(potOdds && draws && draws.length) &&
-                    completed.length === 0
+                      completed.length === 0
                   "
                 >
                   Произведите расчет шансов рук и банка
@@ -483,18 +490,6 @@ function ratio(x, y) {
   return `${x / c}:${y / c}`;
 }
 
-function isElementInViewport(el) {
-  var rect = el.getBoundingClientRect();
-
-  return (
-    rect.top >= 0 &&
-    rect.left >= 0 &&
-    rect.bottom <=
-      (window.innerHeight || document.documentElement.clientHeight) &&
-    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
-  );
-}
-
 export default {
   data() {
     return {
@@ -502,10 +497,11 @@ export default {
       call: 0,
       concatCards: [],
       arrow: false,
+      isElementInViewport: false,
     };
   },
   computed: {
-    deck: function () {
+    deck: function() {
       var deck = new Array();
 
       for (var i = 0; i < suits.length; i++) {
@@ -538,7 +534,7 @@ export default {
 
       return deck;
     },
-    deckGrouped: function () {
+    deckGrouped: function() {
       const temp0 = JSON.parse(JSON.stringify(this.deck));
       const highlighted = temp0.map((item) => {
         const temp = item;
@@ -570,16 +566,16 @@ export default {
       });
 
       return Object.values(
-        highlighted.reduce(function (rv, x) {
+        highlighted.reduce(function(rv, x) {
           (rv[x["value"]] = rv[x["value"]] || []).push(x);
           return rv;
         }, {})
       ).sort((a, b) => a[0].valueWeight > b[0].valueWeight);
     },
-    notEnoughCards: function () {
+    notEnoughCards: function() {
       return this.concatCards.length < 5;
     },
-    unseenDeck: function () {
+    unseenDeck: function() {
       return this.deck.filter(
         (item) =>
           this.concatCards.filter(
@@ -587,15 +583,15 @@ export default {
           ).length === 0
       );
     },
-    unseenDeckGrouped: function () {
+    unseenDeckGrouped: function() {
       return Object.values(
-        this.unseenDeck.reduce(function (rv, x) {
+        this.unseenDeck.reduce(function(rv, x) {
           (rv[x["value"]] = rv[x["value"]] || []).push(x);
           return rv;
         }, {})
       ).sort((a, b) => a[0].valueWeight > b[0].valueWeight);
     },
-    combAll: function () {
+    combAll: function() {
       const temp = [];
 
       if (
@@ -603,8 +599,8 @@ export default {
         this.concatCards.length >= 5 &&
         this.concatCards.length < 7
       ) {
-        var groupBy = function (xs, key) {
-          return xs.reduce(function (rv, x) {
+        var groupBy = function(xs, key) {
+          return xs.reduce(function(rv, x) {
             (rv[x[key]] = rv[x[key]] || []).push(x);
             return rv;
           }, {});
@@ -793,7 +789,7 @@ export default {
 
       return temp;
     },
-    completed: function () {
+    completed: function() {
       let temp0 = [];
 
       if (this.combAll.length) {
@@ -821,7 +817,7 @@ export default {
 
       return temp0;
     },
-    draws: function () {
+    draws: function() {
       if (this.combAll.length) {
         let temp = JSON.parse(JSON.stringify(this.combAll));
 
@@ -883,7 +879,7 @@ export default {
 
       return null;
     },
-    allOuts: function () {
+    allOuts: function() {
       if (this.draws && this.draws.length) {
         let temp = [];
 
@@ -899,7 +895,7 @@ export default {
 
       return [];
     },
-    allOdds: function () {
+    allOdds: function() {
       if (this.allOuts) {
         return {
           ratio: ratio(this.allOuts.length, this.unseenDeck.length),
@@ -910,7 +906,7 @@ export default {
       }
       return [];
     },
-    potOdds: function () {
+    potOdds: function() {
       const call = this.call.length === 0 ? 0 : this.call;
       const pot = this.pot.length === 0 ? 0 : this.pot;
 
@@ -923,7 +919,7 @@ export default {
 
       return null;
     },
-    shouldCall: function () {
+    shouldCall: function() {
       if (this.draws && this.allOdds && this.potOdds) {
         if (this.allOdds.perc > this.potOdds.perc) {
           return true;
@@ -936,14 +932,11 @@ export default {
     },
   },
   watch: {
-    shouldCall: function (newVal, oldVal) {
+    shouldCall: function(newVal, oldVal) {
       if (newVal === null) {
         this.arrow = false;
       } else {
-        if (
-          newVal !== oldVal &&
-          !isElementInViewport(document.getElementById("prediction"))
-        ) {
+        if (newVal !== oldVal && this.isElementInViewport) {
           this.arrow = true;
         } else {
           this.arrow = false;
@@ -982,7 +975,7 @@ export default {
         }
       }
     },
-    isNumber: function (evt) {
+    isNumber: function(evt) {
       evt = evt ? evt : window.event;
       var charCode = evt.which ? evt.which : evt.keyCode;
       if (charCode > 31 && (charCode < 48 || charCode > 57)) {
@@ -991,10 +984,13 @@ export default {
         return true;
       }
     },
+    visibilityChanged: function(isVisible) {
+      this.isElementInViewport = isVisible;
+    },
   },
-  mounted: function () {
+  mounted: function() {
     const handler = () => {
-      if (isElementInViewport(document.getElementById("prediction"))) {
+      if (this.isElementInViewport) {
         this.arrow = false;
       }
     };
@@ -1003,10 +999,17 @@ export default {
     addEventListener("resize", handler, false);
   },
 };
+// TODO: переключатель режима выбора карт в калькуляторе — свои карты / карты противника
 </script>
 
 <style lang="scss">
 @import "@/styles/variables";
+
+.mobile-only {
+  @media screen and (min-width: 501px) {
+    display: none !important;
+  }
+}
 
 .logo {
   display: flex;
@@ -1121,6 +1124,7 @@ export default {
   @media screen and (max-width: 500px) {
     width: 40px;
     height: 40px;
+    font-size: 18px;
   }
 }
 
@@ -1296,17 +1300,38 @@ export default {
 
 .draw-table {
   margin: -3px 0;
+
+  @media screen and (max-width: 500px) {
+    display: block;
+  }
+}
+
+.draw-table tbody,
+.draw-table tr {
+  @media screen and (max-width: 500px) {
+    display: block;
+  }
 }
 
 .draw-table th {
   padding: 3px 6px;
   font-weight: normal;
   text-align: center;
+
+  @media screen and (max-width: 500px) {
+    display: none;
+  }
 }
 
 .draw-table td {
   padding: 3px 6px;
   vertical-align: baseline;
+
+  @media screen and (max-width: 500px) {
+    display: block;
+    padding: 3px 0;
+    text-align: left;
+  }
 }
 
 .draw-table td:first-child {
@@ -1444,12 +1469,27 @@ input {
 .prediction-table {
   min-width: 100%;
   margin: -3px 0;
+
+  @media screen and (max-width: 500px) {
+    display: block;
+  }
+}
+
+.prediction-table tbody,
+.prediction-table tr {
+  @media screen and (max-width: 500px) {
+    display: block;
+  }
 }
 
 .prediction-table th {
   padding: 6px 12px;
   font-weight: normal;
   text-align: center;
+
+  @media screen and (max-width: 500px) {
+    display: none;
+  }
 }
 
 .prediction-table td {
@@ -1457,6 +1497,11 @@ input {
   vertical-align: middle;
   font-size: 16px;
   color: $textColor;
+
+  @media screen and (max-width: 500px) {
+    display: block;
+    padding: 6px 0;
+  }
 }
 
 .prediction-table td:first-child {
