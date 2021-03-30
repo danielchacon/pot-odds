@@ -14,3 +14,13 @@ export default {
   }
 }
 </script>
+
+<style lang="scss">
+@import "destyle.css/destyle";
+@import "@/styles/variables";
+
+body {
+  background-color: $background;
+  font-family: 'Montserrat', sans-serif;
+}
+</style>
