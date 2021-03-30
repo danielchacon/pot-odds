@@ -1,29 +1,14 @@
-# pot-odds
+![](https://pot-odds.netlify.app/logo.png)
 
-## Project setup
-```
-npm install
-```
+# Pot Odds
+Шансы на улучшение и шансы банка в покере: калькулятор
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+## Демонстрация
+https://pot-odds.netlify.app/
 
-### Compiles and minifies for production
-```
-npm run build
-```
+[Скрин](https://pot-odds.netlify.app/screenshot.png)
 
-### Run your tests
-```
-npm run test
-```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## Под капотом
+                
++ Vue.js
++ vue-observe-visibility
