@@ -44,8 +44,22 @@
             разобраться с подсчетами.
           </p>
         </div>
-        <div class="instruction-heading">
-          Выберите 5-6 карт (2 ручные карты и 3-4 на столе)
+        <div class="deck-tools">
+          <ul class="switcher">
+            <li :class="[{ active: myCards }, 'my']" @click="myCards = true">
+              Свои карты
+            </li>
+            <li :class="[{ active: !myCards }, 'opp']" @click="myCards = false">
+              Карты оппонентов
+            </li>
+          </ul>
+        </div>
+        <div class="instruction-heading" v-if="myCards">
+          Выберите 5-6 карт (2 в руке и 3-4 на столе)
+        </div>
+        <div class="instruction-heading" v-if="!myCards">
+          Выберите предполагаемые карты оппонентов, тем самым исключив их из
+          расчета
         </div>
         <div class="deck-wrapper">
           <ul class="ui-deck">
@@ -63,7 +77,10 @@
                     :class="[
                       card.selected ? 'selected' : '',
                       card.out ? 'out' : '',
-                      card.selected || concatCards.length < 6
+                      card.opp ? 'opp' : '',
+                      (card.selected && myCards) ||
+                      (concatCards.length < 6 && myCards) ||
+                      (!myCards && !card.selected)
                         ? 'selectable'
                         : '',
                     ]"
@@ -92,6 +109,10 @@
             <li>
               <span class="deck-legend__box deck-legend__box--hand"></span> —
               ваши карты
+            </li>
+            <li>
+              <span class="deck-legend__box deck-legend__box--opp"></span> —
+              чужие карты
             </li>
             <li>
               <span class="deck-legend__box deck-legend__box--outs"></span> —
@@ -336,13 +357,14 @@
         <div class="section-heading">Рекомендация</div>
         <div class="section-text">
           <p>
-            Знание <strong>шансов рук</strong> и
+            Знание <strong>шансов на улучшение</strong> и
             <strong>шансов банка</strong> позволяет принять решение о выгодности
             ставки.
           </p>
           <p>
             Считается, что ставка выгодна, если
-            <strong>шансы рук</strong> больше <strong>шансов банка</strong>.
+            <strong>шансы на улучшение</strong> выше
+            <strong>шансов банка</strong>.
           </p>
         </div>
         <div
@@ -371,7 +393,7 @@
                       completed.length === 0
                   "
                 >
-                  Произведите расчет шансов рук и банка
+                  Произведите расчет шансов на улучшение и банка
                 </div>
                 <div class="message__text" v-if="completed.length > 0">
                   Нет дро-комбинаций, расчет не требуется
@@ -384,7 +406,7 @@
           <table class="prediction-table">
             <tbody>
               <tr>
-                <td>Шансы руки</td>
+                <td>Шансы на улучшение</td>
                 <td>
                   <span class="text-out"
                     ><span class="big-number">{{ allOdds.ratio }}</span> или
@@ -496,8 +518,10 @@ export default {
       pot: 0,
       call: 0,
       concatCards: [],
+      excludeCards: [],
       arrow: false,
       isElementInViewport: false,
+      myCards: true,
     };
   },
   computed: {
@@ -551,6 +575,17 @@ export default {
         }
 
         if (
+          this.excludeCards.length &&
+          this.excludeCards.filter(
+            (item0) => item0.value === item.value && item0.suit === item.suit
+          ).length
+        ) {
+          temp.opp = true;
+        } else {
+          temp.opp = false;
+        }
+
+        if (
           this.allOuts &&
           this.allOuts.length &&
           this.allOuts.filter(
@@ -579,6 +614,8 @@ export default {
       return this.deck.filter(
         (item) =>
           this.concatCards.filter(
+            (item0) => item0.suit === item.suit && item0.value === item.value
+          ).length === 0 && this.excludeCards.filter(
             (item0) => item0.suit === item.suit && item0.value === item.value
           ).length === 0
       );
@@ -866,9 +903,9 @@ export default {
                   (item1) =>
                     JSON.stringify(item1.outs) === JSON.stringify(item.outs)
                 )
-                .map((item1) => item1.mask[4].valueWeight)
+                .map((item1) => item1.list[item1.list.length - 1].valueWeight)
             );
-            if (item.mask[4].valueWeight !== maxWeight) {
+            if (item.list[item.list.length - 1].valueWeight !== maxWeight) {
               temp = temp.filter((item1, index1) => index1 !== index);
             }
           }
@@ -957,21 +994,48 @@ export default {
         : "";
     },
     cardClick(card) {
-      if (
-        this.concatCards.filter(
-          (item) => item.value === card.value && item.suit === card.suit
-        ).length
-      ) {
-        this.concatCards = this.concatCards.filter(
-          (item) => !(item.value === card.value && item.suit === card.suit)
-        );
-      } else {
-        if (this.concatCards.length < 6) {
-          this.concatCards.push(
-            this.deck.find(
-              (item) => item.suit === card.suit && item.value === card.value
-            )
+      if (this.myCards) {
+        if (
+          this.concatCards.filter(
+            (item) => item.value === card.value && item.suit === card.suit
+          ).length
+        ) {
+          this.concatCards = this.concatCards.filter(
+            (item) => !(item.value === card.value && item.suit === card.suit)
           );
+        } else {
+          if (this.concatCards.length < 6) {
+            this.excludeCards = this.excludeCards.filter(
+              (item) => !(item.value === card.value && item.suit === card.suit)
+            );
+            this.concatCards.push(
+              this.deck.find(
+                (item) => item.suit === card.suit && item.value === card.value
+              )
+            );
+          }
+        }
+      } else {
+        if (
+          this.excludeCards.filter(
+            (item) => item.value === card.value && item.suit === card.suit
+          ).length
+        ) {
+          this.excludeCards = this.excludeCards.filter(
+            (item) => !(item.value === card.value && item.suit === card.suit)
+          );
+        } else {
+          if (
+            this.concatCards.filter(
+              (item) => !(item.suit === card.suit && item.value === card.value)
+            )
+          ) {
+            this.excludeCards.push(
+              this.deck.find(
+                (item) => item.suit === card.suit && item.value === card.value
+              )
+            );
+          }
         }
       }
     },
@@ -999,7 +1063,6 @@ export default {
     addEventListener("resize", handler, false);
   },
 };
-// TODO: переключатель режима выбора карт в калькуляторе — свои карты / карты противника
 </script>
 
 <style lang="scss">
@@ -1145,7 +1208,7 @@ export default {
   box-shadow: none;
 }
 
-.card.selected:hover {
+.card.selected.selectable:hover {
   border-color: darken($selected, 10%);
   box-shadow: none;
 }
@@ -1154,8 +1217,18 @@ export default {
   border-color: $out;
 }
 
-.card.out:hover {
+.card.out.selectable:hover {
   border-color: darken($out, 30%);
+  box-shadow: none;
+}
+
+.card.opp {
+  border-color: $redSuit;
+  box-shadow: none;
+}
+
+.card.opp.selectable:hover {
+  border-color: darken($redSuit, 10%);
   box-shadow: none;
 }
 
@@ -1565,6 +1638,10 @@ input {
   background-color: $selected;
 }
 
+.deck-legend__box--opp {
+  background-color: $redSuit;
+}
+
 .deck-legend__box--outs {
   background-color: $out;
 }
@@ -1623,5 +1700,43 @@ input {
   transform: translateX(-50%);
   pointer-events: none;
   animation: upDown 1s linear infinite;
+}
+
+.deck-tools {
+  margin-bottom: 20px;
+}
+
+.switcher {
+  display: flex;
+  justify-content: center;
+}
+
+.switcher > li {
+  padding: 0.5em 1em;
+  background-color: darken($background, 10%);
+  color: $textColor;
+  font-size: 14px;
+  user-select: none;
+  cursor: pointer;
+}
+
+.switcher > li:first-child {
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+
+.switcher > li:last-child {
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+.switcher > li.my.active {
+  background-color: $selected;
+  color: white;
+}
+
+.switcher > li.opp.active {
+  background-color: $redSuit;
+  color: white;
 }
 </style>
